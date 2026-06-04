@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Parsing not in process</string>
+   <string>Инструментальная система</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QListWidget" name="variablesListWidget">
@@ -223,6 +223,8 @@
     <addaction name="actionPlaneXOY"/>
     <addaction name="actionPlaneXOZ"/>
     <addaction name="actionPlaneYOZ"/>
+    <addaction name="separator"/>
+    <addaction name="workspaceSizeAction"/>
    </widget>
    <addaction name="menuMain"/>
    <addaction name="menuView"/>
@@ -334,6 +336,11 @@
    </property>
    <property name="text">
     <string>Инструмент</string>
+   </property>
+  </action>
+  <action name="workspaceSizeAction">
+   <property name="text">
+    <string>Размер рабочей области (заполнится программно)</string>
    </property>
   </action>
  </widget>

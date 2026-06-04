@@ -32,13 +32,26 @@ MainWindow::MainWindow(QWidget *parent)
                         );
     ui->updateSegmentAmountAction->setText(seg_amt_txt);
 
-    for (auto it = updateSegmentLengthsActions.begin(); it != updateSegmentLengthsActions.end(); it++)
+    ui->workspaceSizeAction->setText(
+        QString("Размер рабочей области = %1")
+        .arg(RobotData::workspaceSize)
+    );
+    connect(
+        ui->workspaceSizeAction,
+        &QAction::triggered,
+        this,
+        &MainWindow::onUpdateWorkspaceSize
+    );
+
+    for (auto it = updateSegmentLengthsActions.begin();
+         it != updateSegmentLengthsActions.end();
+         it++)
     {
         qsizetype i = it - updateSegmentLengthsActions.begin();
-        QString text = QString("Длина сегмента #%1 = %2")
-                           .arg(i+1)
-                           .arg(RobotData::segmentLengths[i]);
-        (*it)->setText(text);
+        (*it)->setText(QString("Длина сегмента #%1 = %2")
+            .arg(i+1)
+            .arg(RobotData::segmentLengths[i])
+        );
         (*it)->setVisible(i < RobotData::segmentAmount);
     }
 
@@ -94,15 +107,18 @@ void MainWindow::cleanupParser()
     ui->deleteSourceCodeAction->setEnabled(false);
     ui->updateSegmentAmountAction->setEnabled(true);
     ui->nextStepButton->setEnabled(false);
+    ui->workspaceSizeAction->setEnabled(true);
 
-    for (auto it = updateSegmentLengthsActions.begin(); it != updateSegmentLengthsActions.end(); it++)
-        (*it)->setEnabled(true);
+    for (auto it = updateSegmentLengthsActions.begin();
+         it != updateSegmentLengthsActions.end();
+         it++
+    ) (*it)->setEnabled(true);
 
     ui->variablesListWidget->clear();
     ui->robotDataListWidget->clear();
     ui->commandsListWidget->clear();
 
-    setWindowTitle("Парсинг не в процессе");
+    setWindowTitle("Инструментальная система");
 
     if (dg)
         dg->requestStop();
@@ -129,25 +145,27 @@ void MainWindow::cleanupParser()
 void MainWindow::onUpdateSegmentAmount()
 {
     bool ok;
-    int const segments = QInputDialog::getInt(this,
-                                        "Изменить количество сегментов",
-                                        QString("Укажите количество сегментов (%1-%2):")
-                                                  .arg(RobotData::minSegmentAmount)
-                                                  .arg(RobotData::maxSegmentAmount),
-                                        RobotData::minSegmentAmount,
-                                        RobotData::minSegmentAmount,
-                                        RobotData::maxSegmentAmount,
-                                        1,
-                                        &ok);
-
+    int const segments = QInputDialog::getInt(
+        this,
+        "Изменить количество сегментов",
+        QString("Укажите количество сегментов (%1-%2):")
+            .arg(RobotData::minSegmentAmount)
+            .arg(RobotData::maxSegmentAmount),
+        RobotData::segmentAmount,
+        RobotData::minSegmentAmount,
+        RobotData::maxSegmentAmount,
+        1,
+        &ok);
     if (!ok) return;
 
     RobotData::segmentAmount = segments;
     QString seg_amt_txt(QString("Указать количество сегментов робота (текущее количество = %1)")
-                            .arg(segments)
+        .arg(segments)
     );
     ui->updateSegmentAmountAction->setText(seg_amt_txt);
-    for (auto it = updateSegmentLengthsActions.begin(); it != updateSegmentLengthsActions.end(); it++)
+    for (auto it = updateSegmentLengthsActions.begin();
+         it != updateSegmentLengthsActions.end();
+         it++)
     {
         qsizetype i = it - updateSegmentLengthsActions.begin();
         (*it)->setVisible(i < segments);
@@ -157,8 +175,10 @@ void MainWindow::onVariablesReceived(vector<pair<string, SemNode*>> const& varia
 {
     ui->variablesListWidget->clear();
 
-    auto typeToString = [](DATA_TYPE type) -> QString {
-        switch (type) {
+    auto typeToString = [](DATA_TYPE type) -> QString
+    {
+        switch (type)
+        {
         case DATA_TYPE::TYPE_SHORT_INT: return "short";
         case DATA_TYPE::TYPE_INT:       return "int";
         case DATA_TYPE::TYPE_LONG_INT:  return "long";
@@ -171,16 +191,15 @@ void MainWindow::onVariablesReceived(vector<pair<string, SemNode*>> const& varia
     auto formatVar = [&](const string& name, const SemNode* node, const auto& value) {
         return QString("[%1:%2] %3 %4 = %5")
         .arg(node->line)
-            .arg(node->col)
-            .arg(typeToString(node->DataType))
-            .arg(QString::fromStdString(name))
-            .arg(value);
+        .arg(node->col)
+        .arg(typeToString(node->DataType))
+        .arg(QString::fromStdString(name))
+        .arg(value);
     };
 
     for (auto const& var : variables)
     {
         SemNode* node = var.second;
-
         if (!node->isInitialized)
         {
             ui->variablesListWidget->addItem(
@@ -214,10 +233,10 @@ void MainWindow::onRobotDataShouldUpdate()
     auto& rd = RobotData::getInstance();
     for (int8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        QString s = QString("[%1 %2 %3]")
-                        .arg(rd.getX(i))
-                        .arg(rd.getY(i))
-                        .arg(rd.getZ(i));
+        QString conat s = QString("[%1 %2 %3]")
+            .arg(rd.getX(i))
+            .arg(rd.getY(i))
+            .arg(rd.getZ(i));
         ui->robotDataListWidget->item(i)->setText(s);
     }
     redrawRobot();
@@ -259,7 +278,7 @@ void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
     double const len = QInputDialog::getDouble(this,
                                                label,
                                                label,
-                                               RobotData::minSegmentLength,
+                                               RobotData::segmentLengths.at(buttonIndex),
                                                RobotData::minSegmentLength,
                                                RobotData::maxSegmentLength,
                                                1,
@@ -268,13 +287,13 @@ void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
                                                0.1
     );
     if (!ok) return;
-    RobotData::segmentLengths[buttonIndex] = len;
+    RobotData::segmentLengths.at(buttonIndex) = len;
 
     QString txt(QString("Длина сегмента #%1 = %2")
-                    .arg(buttonIndex + 1)
-                    .arg(len)
+        .arg(buttonIndex + 1)
+        .arg(len)
     );
-    updateSegmentLengthsActions[buttonIndex]->setText(txt);
+    updateSegmentLengthsActions.at(buttonIndex)->setText(txt);
 }
 
 void MainWindow::onUpdatedActionPlane(RobotViewWidget::ViewPlane plane)
@@ -296,7 +315,7 @@ void MainWindow::onUpdatedActionPlane(RobotViewWidget::ViewPlane plane)
 
 void MainWindow::onLoadedSrcCode()
 {
-    QString fileName = QFileDialog::getOpenFileName(
+    QString const fileName = QFileDialog::getOpenFileName(
         this,
         tr("Select RML File"),
         "D:\\8 semester\\Diplome\\code",
@@ -312,11 +331,10 @@ void MainWindow::onLoadedSrcCode()
     qDebug() << "User selected:" << fileName;
 
     // Обработка загрузки файла
-    bool success = sc->loadFile(fileName.toStdString());
-
-    if (!success)
+    if (!sc->loadFile(fileName.toStdString()))
     {
         qDebug() << "File not loaded into scanner";
+        QMessageBox::critical(nullptr, "Ошибка загрузки файла", "Не удалось загрузить исходный код в сканер.");
         return;
     }
     qDebug() << "File loaded into scanner";
@@ -325,11 +343,12 @@ void MainWindow::onLoadedSrcCode()
     ui->deleteSourceCodeAction->setEnabled(true);
     ui->updateSegmentAmountAction->setEnabled(false);
     ui->nextStepButton->setEnabled(true);
+    ui->workspaceSizeAction->setEnabled(false);
     ui->projectionWidgetLabel->show();
     for (auto it = updateSegmentLengthsActions.begin(); it != updateSegmentLengthsActions.end(); it++)
         (*it)->setEnabled(false);
 
-    robotViewWidget = new RobotViewWidget(679, 100.0, this);
+    robotViewWidget = new RobotViewWidget(679, RobotData::workspaceSize / 2.0, this);
     robotViewWidget->move(ui->projectionWidgetLabel->x(), 61); // на ноутбуке: 71 вместо 61
     robotViewWidget->show();
 
@@ -338,50 +357,10 @@ void MainWindow::onLoadedSrcCode()
     dg = new Diagram(sc);
     dg->moveToThread(parserThrd);
 
-    connect(parserThrd,
-            &QThread::started,
-            dg,
-            &Diagram::startParse);
-    connect(parserThrd,
-            &QThread::finished,
-            dg,
-            &QObject::deleteLater);
-    connect(parserThrd,
-            &QThread::finished,
-            this,
-            [this]()
-            {
-                return;
-                qDebug() << "Thread finished";
-                cleanupParser();
-                QMessageBox* msgBox = new QMessageBox(nullptr);
-                msgBox->setIcon(QMessageBox::Information);
-                msgBox->setWindowTitle("Parser thread finished successfully!");
-                msgBox->setText("Parser thread finished successfully!");
-                msgBox->setAttribute(Qt::WA_DeleteOnClose); // no mem leak cuz of this
-                msgBox->show();
-            });
-    connect(dg,
-            &Diagram::parseError,
-            this,
-            [this](const QString& msg)
-            {
-                qDebug() << "Parser exception:" << msg;
-                cleanupParser();
-                QMessageBox* msgBox = new QMessageBox(nullptr);
-                msgBox->setIcon(QMessageBox::Critical);
-                msgBox->setWindowTitle("Ошибка в процессе интерпретации");
-                msgBox->setText(msg);
-                msgBox->setAttribute(Qt::WA_DeleteOnClose); // no mem leak cuz of this
-                msgBox->show();
-            });
-    connect(ui->nextStepButton,
-            &QPushButton::clicked,
-            this,
-            [this]()
-            {
-                if (dg) dg->nextStep();
-            });
+    connect(parserThrd, &QThread::started, dg, &Diagram::startParse);
+    connect(parserThrd, &QThread::finished, dg, &QObject::deleteLater);
+    connect(dg, &Diagram::parseError, this, &MainWindow::onParseError);
+    connect(ui->nextStepButton, &QPushButton::clicked, this, [this]() { if (dg) dg->nextStep(); });
 
     connect(dg, &Diagram::sendAllCurrentVariables, this, &MainWindow::onVariablesReceived);
     connect(dg, &Diagram::sendRobotData, this, &MainWindow::onRobotDataShouldUpdate);
@@ -399,4 +378,35 @@ void MainWindow::onLoadedSrcCode()
     }
 
     parserThrd->start();
+}
+
+void MainWindow::onParseError(const QString& msg)
+{
+    qDebug() << "Parser exception:" << msg;
+    cleanupParser();
+    QMessageBox::critical(nullptr, "Ошибка в процессе интерпретации", msg);
+}
+
+void MainWindow::onUpdateWorkspaceSize()
+{
+    bool ok;
+    static QString const label(QString("Укажите размер рабочей области (%1-%2)")
+        .arg(RobotData::minWorkspaceSize)
+        .arg(RobotData::maxWorkspaceSize)
+    );
+    double const workspaceSize =
+        QInputDialog::getDouble(
+            this,
+            label,
+            label,
+            RobotData::workspaceSize,
+            RobotData::minWorkspaceSize,
+            RobotData::maxWorkspaceSize,
+            1,
+            &ok,
+            Qt::WindowFlags(),
+            0.1);
+    RobotData::workspaceSize = (ok ? workspaceSize : RobotData::workspaceSize);
+    ui->workspaceSizeAction->setText(QString("Размер рабочей области = %1")
+        .arg(RobotData::workspaceSize));
 }

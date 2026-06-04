@@ -23,8 +23,12 @@ public:
     static constexpr double minSegmentLength = 10.0;
     static constexpr double maxSegmentLength = 10.0 * minSegmentLength;
 
+    static constexpr double minWorkspaceSize = 40.0;
+    static constexpr double maxWorkspaceSize = 5.0 * minWorkspaceSize;
+
     static uint8_t segmentAmount;
     static std::array<double, maxSegmentAmount> segmentLengths;
+    static double workspaceSize;
 
     RobotData(const RobotData&) = delete;
     RobotData& operator=(RobotData&) = delete;

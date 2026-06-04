@@ -6,6 +6,7 @@
 using namespace std;
 
 uint8_t RobotData::segmentAmount = minSegmentAmount;
+double RobotData::workspaceSize = (RobotData::maxWorkspaceSize + RobotData::minWorkspaceSize) / 2.0;
 
 array<double, RobotData::maxSegmentAmount> RobotData::segmentLengths = []{
     array<double, RobotData::maxSegmentAmount> arr;

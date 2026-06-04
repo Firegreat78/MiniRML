@@ -49,6 +49,8 @@ private slots:
     void onUpdateSegmentLength(uint8_t);
     void onUpdatedActionPlane(RobotViewWidget::ViewPlane);
     void onLoadedSrcCode();
+    void onUpdateWorkspaceSize();
+    void onParseError(const QString&);
 
 public slots:
     void onVariablesReceived(std::vector<std::pair<std::string, SemNode*>> const&);
