@@ -359,7 +359,10 @@ void MainWindow::onLoadedSrcCode()
 
     connect(parserThrd, &QThread::started, dg, &Diagram::startParse);
     connect(parserThrd, &QThread::finished, dg, &QObject::deleteLater);
+
+    connect(dg, &Diagram::parseFinished, this, &MainWindow::onParseFinished);
     connect(dg, &Diagram::parseError, this, &MainWindow::onParseError);
+
     connect(ui->nextStepButton, &QPushButton::clicked, this, [this]() { if (dg) dg->nextStep(); });
 
     connect(dg, &Diagram::sendAllCurrentVariables, this, &MainWindow::onVariablesReceived);
@@ -409,4 +412,13 @@ void MainWindow::onUpdateWorkspaceSize()
     RobotData::workspaceSize = (ok ? workspaceSize : RobotData::workspaceSize);
     ui->workspaceSizeAction->setText(QString("Размер рабочей области = %1")
         .arg(RobotData::workspaceSize));
+}
+
+void MainWindow::onParseFinished()
+{
+    QMessageBox::information(
+        this,
+        "Parser sucessfully finished working!",
+        "Parser had finished finished working. Now you need to cleanup it"
+    );
 }

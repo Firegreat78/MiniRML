@@ -51,6 +51,7 @@ private slots:
     void onLoadedSrcCode();
     void onUpdateWorkspaceSize();
     void onParseError(const QString&);
+    void onParseFinished();
 
 public slots:
     void onVariablesReceived(std::vector<std::pair<std::string, SemNode*>> const&);
