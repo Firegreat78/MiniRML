@@ -233,7 +233,7 @@ void MainWindow::onRobotDataShouldUpdate()
     auto& rd = RobotData::getInstance();
     for (int8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        QString conat s = QString("[%1 %2 %3]")
+        QString const s = QString("[%1 %2 %3]")
             .arg(rd.getX(i))
             .arg(rd.getY(i))
             .arg(rd.getZ(i));
