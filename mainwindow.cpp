@@ -18,6 +18,17 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    // enter нажимает кнопку
+    enterShortcutNextStepButton = new QShortcut(Qt::Key_Return, this);
+    connect(
+        enterShortcutNextStepButton,
+        &QShortcut::activated,
+        ui->nextStepButton,
+        &QPushButton::click
+    );
+    enterShortcutNextStepButton->setEnabled(false);
+
     updateSegmentLengthsActions = {
         ui->segmentLength1Action,
         ui->segmentLength2Action,
@@ -106,7 +117,10 @@ void MainWindow::cleanupParser()
     ui->uploadSourceCodeAction->setEnabled(true);
     ui->deleteSourceCodeAction->setEnabled(false);
     ui->updateSegmentAmountAction->setEnabled(true);
+
     ui->nextStepButton->setEnabled(false);
+    enterShortcutNextStepButton->setEnabled(false);
+
     ui->workspaceSizeAction->setEnabled(true);
 
     for (auto it = updateSegmentLengthsActions.begin();
@@ -342,7 +356,10 @@ void MainWindow::onLoadedSrcCode()
     ui->uploadSourceCodeAction->setEnabled(false);
     ui->deleteSourceCodeAction->setEnabled(true);
     ui->updateSegmentAmountAction->setEnabled(false);
+
     ui->nextStepButton->setEnabled(true);
+    enterShortcutNextStepButton->setEnabled(true);
+
     ui->workspaceSizeAction->setEnabled(false);
     ui->projectionWidgetLabel->show();
     for (auto it = updateSegmentLengthsActions.begin(); it != updateSegmentLengthsActions.end(); it++)

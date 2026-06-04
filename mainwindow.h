@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QPointer>
 #include <QCloseEvent>
+#include <QShortcut>
 
 #include <map>
 
@@ -36,6 +37,8 @@ private:
     std::map<std::string, SemNode> variables; // todo: del?
     QPointer<QThread> parserThrd = nullptr;
     std::array<QAction*, RobotData::maxSegmentAmount> updateSegmentLengthsActions;
+
+    QPointer<QShortcut> enterShortcutNextStepButton = nullptr;
 
     void cleanupParser();
     void redrawRobot();
