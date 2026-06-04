@@ -52,3 +52,11 @@ z' &= p_z + z \cdot \cos(\theta) + (u_x Y - u_y X) \cdot \sin(\theta) + u_z (u_x
 \end{aligned}
 
 ```
+
+Где
+
+```math
+$$
+X = x - p_x, \quad Y = y - p_y, \quad Z = z - p_z
+$$
+```
