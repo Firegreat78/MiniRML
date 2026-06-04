@@ -1796,23 +1796,7 @@ void Diagram::MoveStmt()
     SemNode x_offset = popValue();
 
     if (Tree::isInterpretationEnabled())
-    {
-        for (int8_t i = 0; i <= RobotData::segmentAmount; i++)
-        {
-            auto& rd = RobotData::getInstance();
-            rd.setX(i, rd.getX(i) + x_offset.Value.v_double);
-            rd.setY(i, rd.getY(i) + y_offset.Value.v_double);
-        }
-
-        int l, c;
-        tie(l, c) = sc->getLineCol();
-
-        waitForButtonPress(QString("[%1:%2] Move(%3, %4) executed")
-                               .arg(l)
-                               .arg(c)
-                               .arg(x_offset.Value.v_double)
-                               .arg(y_offset.Value.v_double));
-    }
+        executeMove(x_offset, y_offset);
 
     t = nextToken(); // ';'
     if (t != LexemType::SEMI) synError("Expected ';' after Move command");
@@ -1868,62 +1852,95 @@ void Diagram::RotateStmt()
     t = nextToken(); // ')'
     if (t != LexemType::RPAREN) synError("Expected ')' after second argument in 'Rotate' command");
 
-
     if (Tree::isInterpretationEnabled())
-    {
-        if (robotNodeIdx.Value.v_int16 >= RobotData::segmentAmount)
-        {
-            QString err_str(QString("Joint index for rotation (%1) must be less than the robot's segment amount (%2)")
-                            .arg(robotNodeIdx.Value.v_int16)
-                            .arg(RobotData::segmentAmount)
-            );
-            interpError(err_str.toStdString());
-        }
+        executeRotate(robotNodeIdx, normalX, normalY, normalZ, radians);
 
-
-        double const len = sqrt(
-            normalX.Value.v_double * normalX.Value.v_double +
-            normalY.Value.v_double * normalY.Value.v_double +
-            normalZ.Value.v_double * normalZ.Value.v_double
-            );
-
-        if (len < 1e-24) // todo: remove magic val
-        {
-            QString err_str(QString("Normal length is too small (%1)").arg(len));
-            interpError(err_str.toStdString());
-        }
-
-        auto& rd = RobotData::getInstance();
-
-        rd.rotate(
-            robotNodeIdx.Value.v_int16,
-            normalX.Value.v_double,
-            normalY.Value.v_double,
-            normalZ.Value.v_double,
-            radians.Value.v_double
-            );
-
-        int l, c;
-        tie(l, c) = sc->getLineCol();
-
-        QString const s = QString("[%1:%2] Rotate(%3, %4, %5, %6, %7) executed")
-                              .arg(l)
-                              .arg(c)
-                              .arg(robotNodeIdx.Value.v_int16)
-                              .arg(normalX.Value.v_double)
-                              .arg(normalY.Value.v_double)
-                              .arg(normalZ.Value.v_double)
-                              .arg(radians.Value.v_double);
-        waitForButtonPress(s);
-    }
     t = nextToken(); // ';'
     if (t != LexemType::SEMI) synError("Expected ';' after Rotate command");
+}
+
+void Diagram::executeMove(
+    SemNode const& x_offset,
+    SemNode const& y_offset)
+{
+    for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
+    {
+        auto& rd = RobotData::getInstance();
+        double const x = rd.getX(i);
+        double const y = rd.getY(i);
+        rd.setX(i, x + x_offset.Value.v_double);
+        rd.setY(i, y + y_offset.Value.v_double);
+    }
+
+    checkJointsInsideWorkspace();
+
+    int l, c;
+    tie(l, c) = sc->getLineCol();
+
+    waitForButtonPress(QString("[%1:%2] Move(%3, %4) executed")
+                           .arg(l)
+                           .arg(c)
+                           .arg(x_offset.Value.v_double)
+                           .arg(y_offset.Value.v_double));
+}
+
+void Diagram::executeRotate(
+    SemNode const& robotNodeIdx,
+    SemNode const& normalX,
+    SemNode const& normalY,
+    SemNode const& normalZ,
+    SemNode const& radians)
+{
+    if (robotNodeIdx.Value.v_int16 >= RobotData::segmentAmount)
+        interpError(QString("Joint index for rotation (%1) must be less than the robot's segment amount (%2)")
+                        .arg(robotNodeIdx.Value.v_int16)
+                        .arg(RobotData::segmentAmount)
+                        .toStdString()
+        );
+
+    double const len = sqrt(
+        normalX.Value.v_double * normalX.Value.v_double +
+        normalY.Value.v_double * normalY.Value.v_double +
+        normalZ.Value.v_double * normalZ.Value.v_double
+        );
+
+    if (len < 1e-24) // todo: remove magic val
+    {
+        QString err_str(QString("Normal length is too small (%1)").arg(len));
+        interpError(err_str.toStdString());
+    }
+
+    auto& rd = RobotData::getInstance();
+
+    rd.rotate(
+        robotNodeIdx.Value.v_int16,
+        normalX.Value.v_double,
+        normalY.Value.v_double,
+        normalZ.Value.v_double,
+        radians.Value.v_double
+        );
+
+    checkJointsInsideWorkspace();
+
+    int l, c;
+    tie(l, c) = sc->getLineCol();
+
+    QString const s = QString("[%1:%2] Rotate(%3, %4, %5, %6, %7) executed")
+                          .arg(l)
+                          .arg(c)
+                          .arg(robotNodeIdx.Value.v_int16)
+                          .arg(normalX.Value.v_double)
+                          .arg(normalY.Value.v_double)
+                          .arg(normalZ.Value.v_double)
+                          .arg(radians.Value.v_double);
+    waitForButtonPress(s);
 }
 
 void Diagram::startParse()
 {
     try
     {
+        checkJointsInsideWorkspace();
         waitForButtonPress("Parsing successfully began!");
         ParseProgram(true, true);
         waitForButtonPress("Parsing successfully finished!");
@@ -1971,4 +1988,26 @@ void Diagram::requestStop()
     stopRequested = true;
     buttonPressed = true;
     stepCondition.wakeOne();
+}
+
+void Diagram::checkJointsInsideWorkspace()
+{
+    auto& rd = RobotData::getInstance();
+    QString msg;
+    for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
+    {
+        if (rd.isJointInsideWorkspace(i)) continue;
+
+        double const x = rd.getX(i);
+        double const y = rd.getY(i);
+        double const z = rd.getZ(i);
+
+        msg += QString(
+                   "\nJoint #%1 with coordinates [%2 %3 %4] was moved out of workspace")
+                   .arg(i+1)
+                   .arg(x)
+                   .arg(y)
+                   .arg(z);
+    }
+    if (!msg.isEmpty()) interpError((msg + "\n").toStdString());
 }

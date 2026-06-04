@@ -142,3 +142,14 @@ void RobotData::reset()
     }
     points.push_back({offset, 0, 0});
 }
+
+bool RobotData::isJointInsideWorkspace(uint8_t jointIndex) const
+{
+    double const x = getX(jointIndex);
+    double const y = getY(jointIndex);
+    double const z = getZ(jointIndex);
+
+    return abs(x * 2.0) < workspaceSize &&
+           abs(y * 2.0) < workspaceSize &&
+           abs(z * 2.0) < workspaceSize;
+}

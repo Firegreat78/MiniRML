@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Инструментальная система</string>
+   <string>Инструментальная система разработки программ управления промышленными роботами</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QListWidget" name="variablesListWidget">

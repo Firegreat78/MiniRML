@@ -101,6 +101,9 @@ private:
     SemNode popValue();
     SemNode evaluateLiteral(const std::string& value, DATA_TYPE type);
     void executeAssignment(const std::string& varName, DATA_TYPE exprType, int line, int col);
+    void executeMove(SemNode const&, SemNode const&);
+    void executeRotate(SemNode const&, SemNode const&, SemNode const&, SemNode const&, SemNode const&);
+    void checkJointsInsideWorkspace();
 
 public:
     Diagram(Scanner* scanner);

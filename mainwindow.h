@@ -40,7 +40,6 @@ private:
 
     QPointer<QShortcut> enterShortcutNextStepButton = nullptr;
 
-    void cleanupParser();
     void redrawRobot();
 
 signals:
@@ -55,6 +54,7 @@ private slots:
     void onUpdateWorkspaceSize();
     void onParseError(const QString&);
     void onParseFinished();
+    void cleanupParser();
 
 public slots:
     void onVariablesReceived(std::vector<std::pair<std::string, SemNode*>> const&);

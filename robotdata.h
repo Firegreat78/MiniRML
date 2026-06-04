@@ -49,6 +49,8 @@ public:
 
     // поворот
     void rotate(uint8_t, double, double, double, double);
+
+    bool isJointInsideWorkspace(uint8_t) const;
 };
 
 #endif // !ROBOTDATA_H

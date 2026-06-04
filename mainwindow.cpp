@@ -86,18 +86,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::updatedActionPlane, this, &MainWindow::onUpdatedActionPlane);
 
     connect(ui->uploadSourceCodeAction, &QAction::triggered, this, &MainWindow::onLoadedSrcCode);
-
-    connect(ui->deleteSourceCodeAction,
-            &QAction::triggered,
-            this,
-            [this]()
-            {
-                cleanupParser();
-            });
+    connect(ui->deleteSourceCodeAction, &QAction::triggered, this, &MainWindow::cleanupParser);
 
     connect(ui->updateSegmentAmountAction, &QAction::triggered, this, &MainWindow::onUpdateSegmentAmount);
-    auto& rd = RobotData::getInstance();
-    rd.reset();
+    RobotData::getInstance().reset();
 }
 
 MainWindow::~MainWindow()
@@ -132,8 +124,6 @@ void MainWindow::cleanupParser()
     ui->robotDataListWidget->clear();
     ui->commandsListWidget->clear();
 
-    setWindowTitle("Инструментальная система");
-
     if (dg)
         dg->requestStop();
 
@@ -142,8 +132,7 @@ void MainWindow::cleanupParser()
     {
         parserThrd->quit();
         parserThrd->wait();
-        delete parserThrd;
-        parserThrd = nullptr;
+        parserThrd->deleteLater();
     }
 
     dg = nullptr;
@@ -289,17 +278,18 @@ void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
     QString const label(QString("Укажите длину сегмента #%1")
                             .arg(buttonIndex + 1)
     );
-    double const len = QInputDialog::getDouble(this,
-                                               label,
-                                               label,
-                                               RobotData::segmentLengths.at(buttonIndex),
-                                               RobotData::minSegmentLength,
-                                               RobotData::maxSegmentLength,
-                                               1,
-                                               &ok,
-                                               Qt::WindowFlags(),
-                                               0.1
-    );
+    double const len = QInputDialog::getDouble(
+        this,
+        label,
+        label,
+        RobotData::segmentLengths.at(buttonIndex),
+        RobotData::minSegmentLength,
+        RobotData::maxSegmentLength,
+        1,
+        &ok,
+        Qt::WindowFlags(),
+        0.1
+        );
     if (!ok) return;
     RobotData::segmentLengths.at(buttonIndex) = len;
 
@@ -403,7 +393,6 @@ void MainWindow::onLoadedSrcCode()
 void MainWindow::onParseError(const QString& msg)
 {
     qDebug() << "Parser exception:" << msg;
-    cleanupParser();
     QMessageBox::critical(nullptr, "Ошибка в процессе интерпретации", msg);
 }
 
