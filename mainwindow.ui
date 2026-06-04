@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1450</width>
+    <height>764</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1450</width>
+    <height>764</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1450</width>
+    <height>764</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Parsing not in process</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QListWidget" name="variablesListWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>40</y>
+      <width>170</width>
+      <height>641</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="nextStepButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>678</y>
+      <width>728</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Следующий шаг</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="robotDataListWidget">
+    <property name="geometry">
+     <rect>
+      <x>168</x>
+      <y>40</y>
+      <width>170</width>
+      <height>641</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="variablesLabel">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>170</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <property name="text">
+     <string>Переменные</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="jointsLabel">
+    <property name="geometry">
+     <rect>
+      <x>168</x>
+      <y>0</y>
+      <width>170</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <property name="text">
+     <string>Шарниры</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="commandsLabel">
+    <property name="geometry">
+     <rect>
+      <x>336</x>
+      <y>0</y>
+      <width>390</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <property name="text">
+     <string>Команды</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="commandsListWidget">
+    <property name="geometry">
+     <rect>
+      <x>336</x>
+      <y>39</y>
+      <width>390</width>
+      <height>641</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="projectionWidgetLabel">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>724</x>
+      <y>0</y>
+      <width>679</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <property name="text">
+     <string>Проекция на плоскость XOY</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1450</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMain">
+    <property name="title">
+     <string>Код</string>
+    </property>
+    <addaction name="uploadSourceCodeAction"/>
+    <addaction name="updateSegmentAmountAction"/>
+    <addaction name="deleteSourceCodeAction"/>
+    <addaction name="separator"/>
+    <addaction name="toggleInstrumentAction"/>
+    <addaction name="segmentLength1Action"/>
+    <addaction name="segmentLength2Action"/>
+    <addaction name="segmentLength3Action"/>
+    <addaction name="segmentLength4Action"/>
+    <addaction name="segmentLength5Action"/>
+    <addaction name="segmentLength6Action"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>Вид</string>
+    </property>
+    <addaction name="actionPlaneXOY"/>
+    <addaction name="actionPlaneXOZ"/>
+    <addaction name="actionPlaneYOZ"/>
+   </widget>
+   <addaction name="menuMain"/>
+   <addaction name="menuView"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="uploadSourceCodeAction">
+   <property name="text">
+    <string>Загрузить файл с исходным кодом</string>
+   </property>
+  </action>
+  <action name="updateSegmentAmountAction">
+   <property name="text">
+    <string>кол-во сегментов робота (заполнится программно)</string>
+   </property>
+  </action>
+  <action name="deleteSourceCodeAction">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Остановить парсер</string>
+   </property>
+  </action>
+  <action name="programState">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Текущее состояние: начальное</string>
+   </property>
+  </action>
+  <action name="actionPlaneXOY">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>XOY</string>
+   </property>
+  </action>
+  <action name="actionPlaneXOZ">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>XOZ</string>
+   </property>
+  </action>
+  <action name="actionPlaneYOZ">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>YOZ</string>
+   </property>
+  </action>
+  <action name="segmentLengthsAction">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Длины сегментов</string>
+   </property>
+  </action>
+  <action name="segmentLength1Action">
+   <property name="text">
+    <string>Длина сегмента #1 = заполнится программно</string>
+   </property>
+  </action>
+  <action name="segmentLength2Action">
+   <property name="text">
+    <string>Длина сегмента #2 = заполнится программно</string>
+   </property>
+  </action>
+  <action name="segmentLength3Action">
+   <property name="text">
+    <string>Длина сегмента #3 = заполнится программно</string>
+   </property>
+  </action>
+  <action name="segmentLength4Action">
+   <property name="text">
+    <string>Длина сегмента #4 = заполнится программно</string>
+   </property>
+  </action>
+  <action name="segmentLength5Action">
+   <property name="text">
+    <string>Длина сегмента #5 = заполнится программно</string>
+   </property>
+  </action>
+  <action name="segmentLength6Action">
+   <property name="text">
+    <string>Длина сегмента #6 = заполнится программно</string>
+   </property>
+  </action>
+  <action name="toggleInstrumentAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Инструмент</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
