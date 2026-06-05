@@ -38,7 +38,7 @@
    </widget>
    <widget class="QPushButton" name="nextStepButton">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -150,7 +150,7 @@
     <property name="geometry">
      <rect>
       <x>336</x>
-      <y>39</y>
+      <y>40</y>
       <width>390</width>
       <height>641</height>
      </rect>

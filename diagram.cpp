@@ -8,6 +8,12 @@
 
 using namespace std;
 
+class abrupt_parse_finish : public runtime_error
+{
+public:
+    abrupt_parse_finish(const char* ch) : runtime_error(ch) {}
+};
+
 constexpr double PI = 3.14159265358979323846;
 constexpr double DEG_TO_RAD_FACTOR = PI / 180.0;
 constexpr double RAD_TO_DEG_FACTOR = 180.0 / PI;
@@ -1946,6 +1952,10 @@ void Diagram::startParse()
         waitForButtonPress("Parsing successfully finished!");
         emit parseFinished();
     }
+    catch (const abrupt_parse_finish& ex)
+    {
+        // не бросаем сигнал; разделение причины исключения
+    }
     catch (const std::exception& ex)
     {
         QString err_msg = QString::fromUtf8(ex.what());
@@ -1972,7 +1982,7 @@ void Diagram::waitForButtonPress(QString const& currentStepMsg)
     buttonPressed = false;
 
     if (stopRequested)
-        throw std::runtime_error("Parser forcefully stopped");
+        throw abrupt_parse_finish("Parser forcefully stopped");
 }
 
 void Diagram::nextStep()

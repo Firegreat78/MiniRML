@@ -7,6 +7,7 @@
 #include <QCloseEvent>
 #include <QShortcut>
 #include <QList>
+#include <QListWidgetItem>
 
 #include <map>
 
@@ -63,6 +64,8 @@ private slots:
     void onAddColor();
     void onDeleteColor();
     void onEditColor();
+    void onNextStep();
+    void onRobotDataItemClicked(QListWidgetItem*);
 
 public slots:
     void onVariablesReceived(std::vector<std::pair<std::string, SemNode*>> const&);

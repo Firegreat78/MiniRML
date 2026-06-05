@@ -9,7 +9,26 @@
 
 using namespace std;
 
+// подобрать такой цвет, чтобы было различим выбранный шарнир
+QColor getDistinguishableColor(const QColor& baseColor)
+{
+    int h, s, l;
+    baseColor.getHsl(&h, &s, &l);
+
+    int newHue = (h + 180) % 360;
+
+    int newLight = l > 128 ? l - 80 : l + 80;
+    newLight = qBound(0, newLight, 255);
+
+    return QColor::fromHsl(newHue, s, newLight);
+}
+
 QList<QColor> RobotViewWidget::colors = {};
+
+QColor RobotViewWidget::getColor(uint8_t index)
+{
+    return colors.empty() ? Qt::white : colors[index % colors.size()];
+}
 
 RobotViewWidget::RobotViewWidget(
     int sideSize,
@@ -23,6 +42,7 @@ RobotViewWidget::RobotViewWidget(
 {
     setFixedSize(widgetSize, widgetSize);
     scale = widgetSize / (2.0 * maxCoord);
+    highlightedJoint = 0;
 }
 
 void RobotViewWidget::setCurrentPlane(ViewPlane plane)
@@ -33,6 +53,16 @@ void RobotViewWidget::setCurrentPlane(ViewPlane plane)
 void RobotViewWidget::setInstrumentEnabled(bool instrumentEnabled)
 {
     this->instrumentEnabled = instrumentEnabled;
+}
+
+void RobotViewWidget::setHighlightedJoint(uint8_t jointIndex)
+{
+    this->highlightedJoint = jointIndex;
+}
+
+uint8_t RobotViewWidget::getHighlightedJoint() const
+{
+    return this->highlightedJoint;
 }
 
 void RobotViewWidget::paintEvent(QPaintEvent*)
@@ -86,6 +116,7 @@ void RobotViewWidget::paintEvent(QPaintEvent*)
     // робот
     painter.setPen(QPen(Qt::white, 3));
 
+    // соединения между шарнирами
     for (uint8_t i = 0; i < RobotData::segmentAmount; i++)
     {
         QPointF p1 = project(
@@ -103,17 +134,28 @@ void RobotViewWidget::paintEvent(QPaintEvent*)
         painter.drawLine(p1, p2);
     }
 
-    // суставы
+    // шарниры
     for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        int const sz = 8;
+        qreal const sz = 8;
         QPointF p = project(
             rd.getX(i),
             rd.getY(i),
             rd.getZ(i)
             );
-        painter.setBrush(colors.empty() ? Qt::white : colors[i % colors.size()]);
-        painter.setPen(colors.empty() ? Qt::white : colors[i % colors.size()]);
+        QColor c(getColor(i));
+
+        if (i == highlightedJoint)
+        {
+            qreal const outlineSize = sz*2.0;
+            painter.setBrush(QBrush(getDistinguishableColor(c))); // inline this here
+            painter.setPen(Qt::NoPen);
+            painter.drawEllipse(p, outlineSize, outlineSize);
+        }
+
+        // Draw filled circle
+        painter.setBrush(QBrush(c));
+        painter.setPen(Qt::NoPen);
         painter.drawEllipse(p, sz, sz);
 
         if (i != RobotData::segmentAmount || !instrumentEnabled) continue;

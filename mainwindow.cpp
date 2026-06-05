@@ -44,6 +44,7 @@ void MainWindow::setupUi()
         &QPushButton::click
         );
     enterShortcutNextStepButton->setEnabled(false);
+    ui->nextStepButton->setVisible(false);
 
     ui->updateSegmentAmountAction->setText(QString("Указать количество сегментов робота (текущее количество = %1)")
         .arg(RobotData::segmentAmount));
@@ -129,8 +130,9 @@ void MainWindow::cleanupParser()
     ui->deleteSourceCodeAction->setEnabled(false);
     ui->updateSegmentAmountAction->setEnabled(true);
 
-    ui->nextStepButton->setEnabled(false);
+    ui->nextStepButton->setVisible(false);
     enterShortcutNextStepButton->setEnabled(false);
+    disconnect(ui->nextStepButton, &QPushButton::clicked, this, &MainWindow::onNextStep);
 
     ui->workspaceSizeAction->setEnabled(true);
 
@@ -159,7 +161,10 @@ void MainWindow::cleanupParser()
     ui->projectionWidgetLabel->hide();
 
     if (robotViewWidget)
+    {
+        robotViewWidget->hide();
         robotViewWidget->deleteLater();
+    }
 
     qDebug() << "Parser deleted";
 }
@@ -253,12 +258,15 @@ void MainWindow::onVariablesReceived(vector<pair<string, SemNode*>> const& varia
 void MainWindow::onRobotDataShouldUpdate()
 {
     auto& rd = RobotData::getInstance();
-    for (int8_t i = 0; i <= RobotData::segmentAmount; i++)
+    for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        QString const s = QString("[%1 %2 %3]")
+        QString const s = tr("Шарнир #%1\n[%2 %3 %4]\n%5%6")
+            .arg(i + 1)
             .arg(rd.getX(i))
             .arg(rd.getY(i))
-            .arg(rd.getZ(i));
+            .arg(rd.getZ(i))
+            .arg(RobotViewWidget::getColor(i).name().toUpper())
+            .arg(i == robotViewWidget->getHighlightedJoint() ? "\n[выделен]" : "");
         ui->robotDataListWidget->item(i)->setText(s);
     }
     redrawRobot();
@@ -372,7 +380,7 @@ void MainWindow::onLoadedSrcCode()
     ui->deleteSourceCodeAction->setEnabled(true);
     ui->updateSegmentAmountAction->setEnabled(false);
 
-    ui->nextStepButton->setEnabled(true);
+    ui->nextStepButton->setVisible(true);
     enterShortcutNextStepButton->setEnabled(true);
 
     ui->workspaceSizeAction->setEnabled(false);
@@ -395,7 +403,7 @@ void MainWindow::onLoadedSrcCode()
     connect(dg, &Diagram::parseFinished, this, &MainWindow::onParseFinished);
     connect(dg, &Diagram::parseError, this, &MainWindow::onParseError);
 
-    connect(ui->nextStepButton, &QPushButton::clicked, this, [this]() { if (dg) dg->nextStep(); });
+    connect(ui->nextStepButton, &QPushButton::clicked, this, &MainWindow::onNextStep);
 
     connect(dg, &Diagram::sendAllCurrentVariables, this, &MainWindow::onVariablesReceived);
     connect(dg, &Diagram::sendRobotData, this, &MainWindow::onRobotDataShouldUpdate);
@@ -403,13 +411,19 @@ void MainWindow::onLoadedSrcCode()
 
     auto& rd = RobotData::getInstance();
     rd.reset();
+
+    connect(ui->robotDataListWidget, &QListWidget::itemClicked, this, &MainWindow::onRobotDataItemClicked);
     for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        QString s = tr("[%1 %2 %3]")
-        .arg(rd.getX(i))
-        .arg(rd.getY(i))
-        .arg(rd.getZ(i));
-        ui->robotDataListWidget->addItem(s);
+        QListWidgetItem* item = new QListWidgetItem();
+        item->setText(tr("Шарнир #%1\n[%2 %3 %4]\n%5")
+                          .arg(i + 1)
+                          .arg(rd.getX(i))
+                          .arg(rd.getY(i))
+                          .arg(rd.getZ(i))
+                          .arg(RobotViewWidget::getColor(i).name().toUpper()));
+        item->setData(Qt::UserRole, i);
+        ui->robotDataListWidget->addItem(item);
     }
 
     parserThrd->start();
@@ -419,6 +433,8 @@ void MainWindow::onParseError(const QString& msg)
 {
     qDebug() << "Parser exception: " << msg;
     redrawRobot();
+    ui->commandsListWidget->addItem(tr("Шаг #%1: %2").arg(ui->commandsListWidget->count() + 1).arg(msg));
+    ui->nextStepButton->setVisible(false);
     QMessageBox::critical(nullptr, "Ошибка в процессе интерпретации", msg);
 }
 
@@ -472,7 +488,7 @@ void MainWindow::onAddColor()
 
     addColor(color);
 
-    redrawRobot();
+    onRobotDataShouldUpdate();
 }
 
 void MainWindow::onDeleteColor()
@@ -512,7 +528,7 @@ void MainWindow::onDeleteColor()
 
     deleteColor(colorIdx);
 
-    redrawRobot();
+    onRobotDataShouldUpdate();
 }
 
 void MainWindow::addColor(QColor color)
@@ -578,4 +594,23 @@ void MainWindow::onEditColor()
         .arg(index + 1)
         .arg(color.name().toUpper())
     );
+    onRobotDataShouldUpdate();
+}
+
+void MainWindow::onNextStep()
+{
+    if (dg) dg->nextStep();
+}
+
+void MainWindow::onRobotDataItemClicked(QListWidgetItem* item)
+{
+    if (!item) return;
+
+    uint8_t jointIndex = static_cast<uint8_t>(item->data(Qt::UserRole).toUInt());
+    qDebug() << "Clicked on joint #" << jointIndex + 1;
+
+    if (!robotViewWidget) return;
+
+    robotViewWidget->setHighlightedJoint(jointIndex);
+    onRobotDataShouldUpdate();
 }
