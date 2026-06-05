@@ -11,9 +11,9 @@ class RobotViewWidget : public QWidget
 public:
     enum class ViewPlane : uint8_t
     {
-        Top,   // XOY
-        Side,  // YOZ
-        Front  // XOZ
+        XOY,
+        YOZ,
+        XOZ
     };
 
     explicit RobotViewWidget(

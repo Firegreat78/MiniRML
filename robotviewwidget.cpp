@@ -17,7 +17,7 @@ RobotViewWidget::RobotViewWidget(
     QWidget* parent
     )
     : QWidget(parent),
-    currentPlane(ViewPlane::Front),
+    currentPlane(ViewPlane::YOZ),
     widgetSize(sideSize),
     maxCoord(maxCoordAbs)
 {
@@ -53,17 +53,17 @@ void RobotViewWidget::paintEvent(QPaintEvent*)
 
         switch (currentPlane)
         {
-        case ViewPlane::Top:
+        case ViewPlane::XOY:
             px = x;
             py = -y;
             break;
 
-        case ViewPlane::Side:
+        case ViewPlane::YOZ:
             px = z;
             py = -y;
             break;
 
-        case ViewPlane::Front:
+        case ViewPlane::XOZ:
             px = x;
             py = -z;
             break;

@@ -72,9 +72,9 @@ void MainWindow::setupUi()
     connect(ui->toggleInstrumentAction, &QAction::triggered, this, &MainWindow::redrawRobot);
 
     // смена проекции
-    connect(ui->actionPlaneXOY, &QAction::triggered, this, [this]() { emit updatedActionPlane(RobotViewWidget::ViewPlane::Top); });
-    connect(ui->actionPlaneXOZ, &QAction::triggered, this, [this]() { emit updatedActionPlane(RobotViewWidget::ViewPlane::Front); });
-    connect(ui->actionPlaneYOZ, &QAction::triggered, this, [this]() { emit updatedActionPlane(RobotViewWidget::ViewPlane::Side); });
+    connect(ui->actionPlaneXOY, &QAction::triggered, this, [this]() { emit updatedActionPlane(RobotViewWidget::ViewPlane::XOY); });
+    connect(ui->actionPlaneXOZ, &QAction::triggered, this, [this]() { emit updatedActionPlane(RobotViewWidget::ViewPlane::XOZ); });
+    connect(ui->actionPlaneYOZ, &QAction::triggered, this, [this]() { emit updatedActionPlane(RobotViewWidget::ViewPlane::YOZ); });
     connect(this, &MainWindow::updatedActionPlane, this, &MainWindow::onUpdatedActionPlane);
 
     connect(ui->uploadSourceCodeAction, &QAction::triggered, this, &MainWindow::onLoadedSrcCode);
@@ -282,9 +282,9 @@ void MainWindow::redrawRobot()
 {
     if (robotViewWidget == nullptr) return;
 
-    if (ui->actionPlaneXOY->isChecked()) robotViewWidget->setCurrentPlane(RobotViewWidget::ViewPlane::Top);
-    if (ui->actionPlaneXOZ->isChecked()) robotViewWidget->setCurrentPlane(RobotViewWidget::ViewPlane::Front);
-    if (ui->actionPlaneYOZ->isChecked()) robotViewWidget->setCurrentPlane(RobotViewWidget::ViewPlane::Side);
+    if (ui->actionPlaneXOY->isChecked()) robotViewWidget->setCurrentPlane(RobotViewWidget::ViewPlane::XOY);
+    if (ui->actionPlaneXOZ->isChecked()) robotViewWidget->setCurrentPlane(RobotViewWidget::ViewPlane::XOZ);
+    if (ui->actionPlaneYOZ->isChecked()) robotViewWidget->setCurrentPlane(RobotViewWidget::ViewPlane::YOZ);
 
     robotViewWidget->setInstrumentEnabled(ui->toggleInstrumentAction->isChecked());
 
@@ -321,17 +321,17 @@ void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
 
 void MainWindow::onUpdatedActionPlane(RobotViewWidget::ViewPlane plane)
 {
-    ui->actionPlaneXOY->setChecked(plane == RobotViewWidget::ViewPlane::Top);
-    ui->actionPlaneXOZ->setChecked(plane == RobotViewWidget::ViewPlane::Front);
-    ui->actionPlaneYOZ->setChecked(plane == RobotViewWidget::ViewPlane::Side);
+    ui->actionPlaneXOY->setChecked(plane == RobotViewWidget::ViewPlane::XOY);
+    ui->actionPlaneXOZ->setChecked(plane == RobotViewWidget::ViewPlane::XOZ);
+    ui->actionPlaneYOZ->setChecked(plane == RobotViewWidget::ViewPlane::YOZ);
 
-    ui->actionPlaneXOY->setEnabled(plane != RobotViewWidget::ViewPlane::Top);
-    ui->actionPlaneXOZ->setEnabled(plane != RobotViewWidget::ViewPlane::Front);
-    ui->actionPlaneYOZ->setEnabled(plane != RobotViewWidget::ViewPlane::Side);
+    ui->actionPlaneXOY->setEnabled(plane != RobotViewWidget::ViewPlane::XOY);
+    ui->actionPlaneXOZ->setEnabled(plane != RobotViewWidget::ViewPlane::XOZ);
+    ui->actionPlaneYOZ->setEnabled(plane != RobotViewWidget::ViewPlane::YOZ);
 
     ui->projectionWidgetLabel->setText(tr("Проекция на плоскость %1")
-        .arg(plane == RobotViewWidget::ViewPlane::Front ? "XOZ"
-        : plane == RobotViewWidget::ViewPlane::Side ? "YOZ" : "XOY")
+        .arg(plane == RobotViewWidget::ViewPlane::XOZ ? "XOZ"
+        : plane == RobotViewWidget::ViewPlane::YOZ ? "YOZ" : "XOY")
     );
     redrawRobot();
 }
