@@ -8,26 +8,15 @@
 #include <QInputDialog>
 #include <QDebug>
 #include <QMessageBox>
+#include <QColorDialog>
 
 #include <iostream>
 
 using namespace std;
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+void MainWindow::setupUi()
 {
     ui->setupUi(this);
-
-    // enter нажимает кнопку
-    enterShortcutNextStepButton = new QShortcut(Qt::Key_Return, this);
-    connect(
-        enterShortcutNextStepButton,
-        &QShortcut::activated,
-        ui->nextStepButton,
-        &QPushButton::click
-    );
-    enterShortcutNextStepButton->setEnabled(false);
 
     updateSegmentLengthsActions = {
         ui->segmentLength1Action,
@@ -38,21 +27,25 @@ MainWindow::MainWindow(QWidget *parent)
         ui->segmentLength6Action,
     };
 
-    QString seg_amt_txt(QString("Указать количество сегментов робота (текущее количество = %1)")
-                            .arg(RobotData::segmentAmount)
-                        );
-    ui->updateSegmentAmountAction->setText(seg_amt_txt);
+    // enter нажимает кнопку
+    enterShortcutNextStepButton = new QShortcut(Qt::Key_Return, this);
+    connect(
+        enterShortcutNextStepButton,
+        &QShortcut::activated,
+        ui->nextStepButton,
+        &QPushButton::click
+        );
+    enterShortcutNextStepButton->setEnabled(false);
+
+    ui->updateSegmentAmountAction->setText(QString("Указать количество сегментов робота (текущее количество = %1)")
+        .arg(RobotData::segmentAmount));
 
     ui->workspaceSizeAction->setText(
         QString("Размер рабочей области = %1")
-        .arg(RobotData::workspaceSize)
-    );
-    connect(
-        ui->workspaceSizeAction,
-        &QAction::triggered,
-        this,
-        &MainWindow::onUpdateWorkspaceSize
-    );
+            .arg(RobotData::workspaceSize)
+        );
+
+    connect(ui->workspaceSizeAction, &QAction::triggered, this, &MainWindow::onUpdateWorkspaceSize);
 
     for (auto it = updateSegmentLengthsActions.begin();
          it != updateSegmentLengthsActions.end();
@@ -60,13 +53,12 @@ MainWindow::MainWindow(QWidget *parent)
     {
         qsizetype i = it - updateSegmentLengthsActions.begin();
         (*it)->setText(QString("Длина сегмента #%1 = %2")
-            .arg(i+1)
-            .arg(RobotData::segmentLengths[i])
-        );
+                           .arg(i+1)
+                           .arg(RobotData::segmentLengths[i])
+                       );
         (*it)->setVisible(i < RobotData::segmentAmount);
     }
 
-    sc = new Scanner();
     ui->projectionWidgetLabel->hide();
 
     // длины сегментов + инструмент
@@ -89,6 +81,33 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->deleteSourceCodeAction, &QAction::triggered, this, &MainWindow::cleanupParser);
 
     connect(ui->updateSegmentAmountAction, &QAction::triggered, this, &MainWindow::onUpdateSegmentAmount);
+
+    ui->deleteColorAction->setEnabled(!RobotViewWidget::colors.empty());
+
+    // цвета по умолчанию
+    const QList<QColor> defaultColors = {
+        Qt::cyan,            // #00FFFF - Голубой
+        Qt::yellow,          // #FFFF00 - Жёлтый
+        Qt::magenta,         // #FF00FF - Пурпурный
+        QColor(0, 255, 0),   // #00FF00 - Зелёный
+        QColor(255, 128, 0), // #FF8000 - Оранжевый
+        QColor(255, 0, 128), // #FF0080 - Розовый
+        QColor(128, 255, 0), // #80FF00 - Салатовый
+        QColor(0, 128, 255)  // #0080FF - Синий
+    };
+
+    for (const QColor& color : defaultColors) addColor(color);
+
+    connect(ui->addColorAction, &QAction::triggered, this, &MainWindow::onAddColor);
+    connect(ui->deleteColorAction, &QAction::triggered, this, &MainWindow::onDeleteColor);
+}
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    setupUi();
+    sc = new Scanner();
     RobotData::getInstance().reset();
 }
 
@@ -247,7 +266,7 @@ void MainWindow::onRobotDataShouldUpdate()
 
 void MainWindow::onRecvCurrentStepMsg(QString const& currentStepMsg)
 {
-    QString s = QString("Шаг #%1: %2")
+    QString s = tr("Шаг #%1: %2")
                     .arg(ui->commandsListWidget->count()+1)
                     .arg(currentStepMsg);
     ui->commandsListWidget->addItem(s);
@@ -275,7 +294,7 @@ void MainWindow::redrawRobot()
 void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
 {
     bool ok;
-    QString const label(QString("Укажите длину сегмента #%1")
+    QString const label(tr("Укажите длину сегмента #%1")
                             .arg(buttonIndex + 1)
     );
     double const len = QInputDialog::getDouble(
@@ -293,7 +312,7 @@ void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
     if (!ok) return;
     RobotData::segmentLengths.at(buttonIndex) = len;
 
-    QString txt(QString("Длина сегмента #%1 = %2")
+    QString txt(tr("Длина сегмента #%1 = %2")
         .arg(buttonIndex + 1)
         .arg(len)
     );
@@ -310,7 +329,7 @@ void MainWindow::onUpdatedActionPlane(RobotViewWidget::ViewPlane plane)
     ui->actionPlaneXOZ->setEnabled(plane != RobotViewWidget::ViewPlane::Front);
     ui->actionPlaneYOZ->setEnabled(plane != RobotViewWidget::ViewPlane::Side);
 
-    ui->projectionWidgetLabel->setText(QString("Проекция на плоскость %1")
+    ui->projectionWidgetLabel->setText(tr("Проекция на плоскость %1")
         .arg(plane == RobotViewWidget::ViewPlane::Front ? "XOZ"
         : plane == RobotViewWidget::ViewPlane::Side ? "YOZ" : "XOY")
     );
@@ -380,10 +399,10 @@ void MainWindow::onLoadedSrcCode()
     rd.reset();
     for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        QString s = QString("[%1 %2 %3]")
+        QString s = tr("[%1 %2 %3]")
         .arg(rd.getX(i))
-            .arg(rd.getY(i))
-            .arg(rd.getZ(i));
+        .arg(rd.getY(i))
+        .arg(rd.getZ(i));
         ui->robotDataListWidget->addItem(s);
     }
 
@@ -392,14 +411,14 @@ void MainWindow::onLoadedSrcCode()
 
 void MainWindow::onParseError(const QString& msg)
 {
-    qDebug() << "Parser exception:" << msg;
+    qDebug() << "Parser exception: " << msg;
     QMessageBox::critical(nullptr, "Ошибка в процессе интерпретации", msg);
 }
 
 void MainWindow::onUpdateWorkspaceSize()
 {
     bool ok;
-    static QString const label(QString("Укажите размер рабочей области (%1-%2)")
+    static QString const label(tr("Укажите размер рабочей области (%1-%2)")
         .arg(RobotData::minWorkspaceSize)
         .arg(RobotData::maxWorkspaceSize)
     );
@@ -426,5 +445,121 @@ void MainWindow::onParseFinished()
         this,
         "Parser sucessfully finished working!",
         "Parser had finished finished working. Now you need to cleanup it"
+    );
+}
+
+void MainWindow::onAddColor()
+{
+    QColor const color = QColorDialog::getColor(Qt::white, this, tr("Выберите цвет"));
+
+    if (!color.isValid()) return;
+
+    addColor(color);
+
+    redrawRobot();
+}
+
+void MainWindow::onDeleteColor()
+{
+    if (colorActions.isEmpty())
+        return;
+
+    bool ok = true;
+    int colorIdx = 0;
+
+    if (colorActions.size() != 1)
+    {
+        colorIdx = QInputDialog::getInt(this,
+                       tr("Удалить цвет"),
+                       tr("Укажите номер цвета, который хотите удалить (#1-#%1):")
+                           .arg(colorActions.size()),
+                       colorActions.size(),
+                       1,
+                       colorActions.size(),
+                       1,
+                       &ok) - 1;
+
+        if (!ok) return;
+    }
+    else
+    {
+        // Ask for confirmation when only one color left
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this,
+            tr("Удалить цвет"),
+            tr("Это последний цвет. Удалить его?"),
+            QMessageBox::Yes | QMessageBox::No
+            );
+        if (reply != QMessageBox::Yes) return;
+        colorIdx = 0;
+    }
+
+    deleteColor(colorIdx);
+
+    redrawRobot();
+}
+
+void MainWindow::addColor(QColor color)
+{
+    QPointer<QAction> action(new QAction(this));
+
+    connect(action, &QAction::triggered, this, &MainWindow::onEditColor);
+    action->setData(static_cast<uint8_t>(colorActions.size()));
+
+    action->setText(tr("Цвет #%1: %2")
+        .arg(colorActions.size() + 1)
+        .arg(color.name().toUpper())
+    );
+    ui->menuColors->addAction(action);
+
+    RobotViewWidget::colors.push_back(color);
+    colorActions.push_back(std::move(action));
+
+    ui->deleteColorAction->setEnabled(true);
+}
+
+void MainWindow::deleteColor(uint8_t validColorIndex)
+{
+    if (validColorIndex >= colorActions.size())
+        return;
+
+    QPointer<QAction> action = colorActions.takeAt(validColorIndex);
+    RobotViewWidget::colors.removeAt(validColorIndex);
+    ui->menuColors->removeAction(action);
+    action->deleteLater();
+
+    for (auto it = colorActions.begin();
+         it != colorActions.end();
+         it++)
+    {
+        qsizetype i = it - colorActions.begin();
+        (*it)->setText(tr("Цвет #%1: %2")
+            .arg(i + 1)
+            .arg(RobotViewWidget::colors[i].name().toUpper())
+        );
+        (*it)->setData(static_cast<uint8_t>(i));
+    }
+
+    ui->deleteColorAction->setEnabled(!colorActions.empty());
+}
+
+void MainWindow::onEditColor()
+{
+    QAction* triggeredAction = qobject_cast<QAction*>(sender());
+    if (!triggeredAction) return;
+
+    uint8_t index = triggeredAction->data().toUInt();
+
+    QColor const color = QColorDialog::getColor(
+        RobotViewWidget::colors[index],
+        this,
+        tr("Выберите цвет для шарнира #%1").arg(index + 1)
+        );
+    if (!color.isValid()) return;
+
+    RobotViewWidget::colors[index] = color;
+    triggeredAction->setText(tr("Цвет #%1: %2")
+        .arg(index + 1)
+        .arg(color.name().toUpper())
     );
 }

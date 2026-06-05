@@ -6,6 +6,7 @@
 #include <QPointer>
 #include <QCloseEvent>
 #include <QShortcut>
+#include <QList>
 
 #include <map>
 
@@ -30,15 +31,20 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QList<QPointer<QAction>> colorActions;
+    QPointer<QShortcut> enterShortcutNextStepButton = nullptr;
+    std::array<QAction*, RobotData::maxSegmentAmount> updateSegmentLengthsActions;
+    void setupUi();
+
     QPointer<RobotViewWidget> robotViewWidget = nullptr;
 
     Scanner* sc = nullptr;
     QPointer<Diagram> dg = nullptr;
-    std::map<std::string, SemNode> variables; // todo: del?
+    std::map<std::string, SemNode> variables;
     QPointer<QThread> parserThrd = nullptr;
-    std::array<QAction*, RobotData::maxSegmentAmount> updateSegmentLengthsActions;
 
-    QPointer<QShortcut> enterShortcutNextStepButton = nullptr;
+    void addColor(QColor);
+    void deleteColor(uint8_t);
 
     void redrawRobot();
 
@@ -55,6 +61,9 @@ private slots:
     void onParseError(const QString&);
     void onParseFinished();
     void cleanupParser();
+    void onAddColor();
+    void onDeleteColor();
+    void onEditColor();
 
 public slots:
     void onVariablesReceived(std::vector<std::pair<std::string, SemNode*>> const&);

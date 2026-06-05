@@ -226,8 +226,17 @@
     <addaction name="separator"/>
     <addaction name="workspaceSizeAction"/>
    </widget>
+   <widget class="QMenu" name="menuColors">
+    <property name="title">
+     <string>Цвета</string>
+    </property>
+    <addaction name="addColorAction"/>
+    <addaction name="deleteColorAction"/>
+    <addaction name="separator"/>
+   </widget>
    <addaction name="menuMain"/>
    <addaction name="menuView"/>
+   <addaction name="menuColors"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="uploadSourceCodeAction">
@@ -341,6 +350,24 @@
   <action name="workspaceSizeAction">
    <property name="text">
     <string>Размер рабочей области (заполнится программно)</string>
+   </property>
+  </action>
+  <action name="action_1">
+   <property name="text">
+    <string>Цвет шарнира #1</string>
+   </property>
+  </action>
+  <action name="addColorAction">
+   <property name="text">
+    <string>Добавить цвет</string>
+   </property>
+  </action>
+  <action name="deleteColorAction">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Удалить цвет</string>
    </property>
   </action>
  </widget>
