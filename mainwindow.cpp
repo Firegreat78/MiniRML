@@ -450,6 +450,15 @@ void MainWindow::onParseFinished()
 
 void MainWindow::onAddColor()
 {
+    if (RobotViewWidget::colors.size() >= RobotViewWidget::maxColorAmount)
+    {
+        QMessageBox::warning(
+            this,
+            "Задано максимальное количество цветов",
+            tr("Было задано максимальное количество цветов (%1)!").arg(RobotViewWidget::maxColorAmount)
+        );
+        return;
+    }
     QColor const color = QColorDialog::getColor(Qt::white, this, tr("Выберите цвет"));
 
     if (!color.isValid()) return;
