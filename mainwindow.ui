@@ -209,12 +209,7 @@
     <addaction name="deleteSourceCodeAction"/>
     <addaction name="separator"/>
     <addaction name="toggleInstrumentAction"/>
-    <addaction name="segmentLength1Action"/>
-    <addaction name="segmentLength2Action"/>
-    <addaction name="segmentLength3Action"/>
-    <addaction name="segmentLength4Action"/>
-    <addaction name="segmentLength5Action"/>
-    <addaction name="segmentLength6Action"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">

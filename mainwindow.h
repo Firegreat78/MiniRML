@@ -33,7 +33,7 @@ private:
     Ui::MainWindow *ui;
     QList<QPointer<QAction>> colorActions;
     QPointer<QShortcut> enterShortcutNextStepButton = nullptr;
-    std::array<QAction*, RobotData::maxSegmentAmount> updateSegmentLengthsActions;
+    std::array<QPointer<QAction>, RobotData::maxSegmentAmount> updateSegmentLengthsActions;
     void setupUi();
 
     QPointer<RobotViewWidget> robotViewWidget = nullptr;
@@ -49,12 +49,11 @@ private:
     void redrawRobot();
 
 signals:
-    void updateSegmentLength(uint8_t);
     void updatedActionPlane(RobotViewWidget::ViewPlane);
 
 private slots:
     void onUpdateSegmentAmount();
-    void onUpdateSegmentLength(uint8_t);
+    void onUpdateSegmentLength();
     void onUpdatedActionPlane(RobotViewWidget::ViewPlane);
     void onLoadedSrcCode();
     void onUpdateWorkspaceSize();

@@ -18,14 +18,22 @@ void MainWindow::setupUi()
 {
     ui->setupUi(this);
 
-    updateSegmentLengthsActions = {
-        ui->segmentLength1Action,
-        ui->segmentLength2Action,
-        ui->segmentLength3Action,
-        ui->segmentLength4Action,
-        ui->segmentLength5Action,
-        ui->segmentLength6Action,
-    };
+    for (auto it = updateSegmentLengthsActions.begin();
+         it != updateSegmentLengthsActions.end();
+         it++)
+    {
+        qsizetype i = it - updateSegmentLengthsActions.begin();
+
+        QPointer<QAction> segmentLenAction(new QAction(this));
+        segmentLenAction->setData(i);
+        segmentLenAction->setText(tr("Длина сегмента #%1 = %2")
+                                      .arg(i + 1)
+                                      .arg(RobotData::segmentLengths[i]));
+        connect(segmentLenAction, &QAction::triggered, this, &MainWindow::onUpdateSegmentLength);
+
+        ui->menuMain->addAction(segmentLenAction);
+        *it = std::move(segmentLenAction);
+    }
 
     // enter нажимает кнопку
     enterShortcutNextStepButton = new QShortcut(Qt::Key_Return, this);
@@ -52,7 +60,7 @@ void MainWindow::setupUi()
          it++)
     {
         qsizetype i = it - updateSegmentLengthsActions.begin();
-        (*it)->setText(QString("Длина сегмента #%1 = %2")
+        (*it)->setText(tr("Длина сегмента #%1 = %2")
                            .arg(i+1)
                            .arg(RobotData::segmentLengths[i])
                        );
@@ -61,14 +69,6 @@ void MainWindow::setupUi()
 
     ui->projectionWidgetLabel->hide();
 
-    // длины сегментов + инструмент
-    connect(ui->segmentLength1Action, &QAction::triggered, this, [this]() { emit updateSegmentLength(0); });
-    connect(ui->segmentLength2Action, &QAction::triggered, this, [this]() { emit updateSegmentLength(1); });
-    connect(ui->segmentLength3Action, &QAction::triggered, this, [this]() { emit updateSegmentLength(2); });
-    connect(ui->segmentLength4Action, &QAction::triggered, this, [this]() { emit updateSegmentLength(3); });
-    connect(ui->segmentLength5Action, &QAction::triggered, this, [this]() { emit updateSegmentLength(4); });
-    connect(ui->segmentLength6Action, &QAction::triggered, this, [this]() { emit updateSegmentLength(5); });
-    connect(this, &MainWindow::updateSegmentLength, this, &MainWindow::onUpdateSegmentLength);
     connect(ui->toggleInstrumentAction, &QAction::triggered, this, &MainWindow::redrawRobot);
 
     // смена проекции
@@ -170,7 +170,7 @@ void MainWindow::onUpdateSegmentAmount()
     int const segments = QInputDialog::getInt(
         this,
         "Изменить количество сегментов",
-        QString("Укажите количество сегментов (%1-%2):")
+        tr("Укажите количество сегментов (%1-%2):")
             .arg(RobotData::minSegmentAmount)
             .arg(RobotData::maxSegmentAmount),
         RobotData::segmentAmount,
@@ -181,7 +181,7 @@ void MainWindow::onUpdateSegmentAmount()
     if (!ok) return;
 
     RobotData::segmentAmount = segments;
-    QString seg_amt_txt(QString("Указать количество сегментов робота (текущее количество = %1)")
+    QString seg_amt_txt(tr("Указать количество сегментов робота (текущее количество = %1)")
         .arg(segments)
     );
     ui->updateSegmentAmountAction->setText(seg_amt_txt);
@@ -211,7 +211,7 @@ void MainWindow::onVariablesReceived(vector<pair<string, SemNode*>> const& varia
     };
 
     auto formatVar = [&](const string& name, const SemNode* node, const auto& value) {
-        return QString("[%1:%2] %3 %4 = %5")
+        return tr("[%1:%2] %3 %4 = %5")
         .arg(node->line)
         .arg(node->col)
         .arg(typeToString(node->DataType))
@@ -291,17 +291,23 @@ void MainWindow::redrawRobot()
     robotViewWidget->update();
 }
 
-void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
+void MainWindow::onUpdateSegmentLength()
 {
+    QAction* triggeredAction = qobject_cast<QAction*>(sender());
+    if (!triggeredAction) return;
+
+    uint8_t const index = triggeredAction->data().toUInt();
+
     bool ok;
     QString const label(tr("Укажите длину сегмента #%1")
-                            .arg(buttonIndex + 1)
+        .arg(index + 1)
     );
+
     double const len = QInputDialog::getDouble(
         this,
         label,
         label,
-        RobotData::segmentLengths.at(buttonIndex),
+        RobotData::segmentLengths.at(index),
         RobotData::minSegmentLength,
         RobotData::maxSegmentLength,
         1,
@@ -310,13 +316,13 @@ void MainWindow::onUpdateSegmentLength(uint8_t buttonIndex)
         0.1
         );
     if (!ok) return;
-    RobotData::segmentLengths.at(buttonIndex) = len;
+    RobotData::segmentLengths.at(index) = len;
 
     QString txt(tr("Длина сегмента #%1 = %2")
-        .arg(buttonIndex + 1)
-        .arg(len)
-    );
-    updateSegmentLengthsActions.at(buttonIndex)->setText(txt);
+                    .arg(index + 1)
+                    .arg(len)
+                );
+    updateSegmentLengthsActions.at(index)->setText(txt);
 }
 
 void MainWindow::onUpdatedActionPlane(RobotViewWidget::ViewPlane plane)
@@ -412,6 +418,7 @@ void MainWindow::onLoadedSrcCode()
 void MainWindow::onParseError(const QString& msg)
 {
     qDebug() << "Parser exception: " << msg;
+    redrawRobot();
     QMessageBox::critical(nullptr, "Ошибка в процессе интерпретации", msg);
 }
 
@@ -557,7 +564,7 @@ void MainWindow::onEditColor()
     QAction* triggeredAction = qobject_cast<QAction*>(sender());
     if (!triggeredAction) return;
 
-    uint8_t index = triggeredAction->data().toUInt();
+    uint8_t const index = triggeredAction->data().toUInt();
 
     QColor const color = QColorDialog::getColor(
         RobotViewWidget::colors[index],

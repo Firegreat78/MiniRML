@@ -18,7 +18,7 @@ private:
     ~RobotData();
 public:
     static constexpr std::uint8_t minSegmentAmount = 3;
-    static constexpr std::uint8_t maxSegmentAmount = 6;
+    static constexpr std::uint8_t maxSegmentAmount = 16;
 
     static constexpr double minSegmentLength = 10.0;
     static constexpr double maxSegmentLength = 10.0 * minSegmentLength;
