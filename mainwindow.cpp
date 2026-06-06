@@ -80,6 +80,7 @@ void MainWindow::setupUi()
 
     connect(ui->uploadSourceCodeAction, &QAction::triggered, this, &MainWindow::onLoadedSrcCode);
     connect(ui->deleteSourceCodeAction, &QAction::triggered, this, &MainWindow::cleanupParser);
+    ui->deleteSourceCodeAction->setVisible(false);
 
     connect(ui->updateSegmentAmountAction, &QAction::triggered, this, &MainWindow::onUpdateSegmentAmount);
 
@@ -101,6 +102,18 @@ void MainWindow::setupUi()
 
     connect(ui->addColorAction, &QAction::triggered, this, &MainWindow::onAddColor);
     connect(ui->deleteColorAction, &QAction::triggered, this, &MainWindow::onDeleteColor);
+
+    connect(ui->tickAmountAction, &QAction::triggered, this, &MainWindow::onChangeTickAmountRequested);
+    ui->tickAmountAction->setText(tr("Количество делений = %1").arg(RobotViewWidget::tickAmount));
+
+    connect(ui->tickSizeAction, &QAction::triggered, this, &MainWindow::onChangeTickSizeRequested);
+    ui->tickSizeAction->setText(tr("Размер делений = %1").arg(RobotViewWidget::tickSize));
+
+    connect(ui->segmentThicknessAction, &QAction::triggered, this, &MainWindow::onChangeSegmentThicknessRequested);
+    ui->segmentThicknessAction->setText(tr("Толщина сегментов = %1").arg(RobotViewWidget::segmentThickness));
+
+    connect(ui->jointSizeAction, &QAction::triggered, this, &MainWindow::onChangeJointSizeRequested);
+    ui->jointSizeAction->setText(tr("Размер шарниров = %1").arg(RobotViewWidget::jointSize));
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -126,8 +139,9 @@ void MainWindow::cleanupParser()
 {
     qDebug() << "Deleting parser";
 
-    ui->uploadSourceCodeAction->setEnabled(true);
-    ui->deleteSourceCodeAction->setEnabled(false);
+    ui->uploadSourceCodeAction->setVisible(true);
+    ui->deleteSourceCodeAction->setVisible(false);
+
     ui->updateSegmentAmountAction->setEnabled(true);
 
     ui->nextStepButton->setVisible(false);
@@ -260,12 +274,11 @@ void MainWindow::onRobotDataShouldUpdate()
     auto& rd = RobotData::getInstance();
     for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        QString const s = tr("Шарнир #%1\n[%2 %3 %4]\n%5%6")
+        QString const s = tr("Шарнир #%1\n[%2 %3 %4]%5")
             .arg(i + 1)
             .arg(rd.getX(i))
             .arg(rd.getY(i))
             .arg(rd.getZ(i))
-            .arg(RobotViewWidget::getColor(i).name().toUpper())
             .arg(i == robotViewWidget->getHighlightedJoint() ? "\n[выделен]" : "");
         ui->robotDataListWidget->item(i)->setText(s);
     }
@@ -376,8 +389,8 @@ void MainWindow::onLoadedSrcCode()
     }
     qDebug() << "File loaded into scanner";
 
-    ui->uploadSourceCodeAction->setEnabled(false);
-    ui->deleteSourceCodeAction->setEnabled(true);
+    ui->uploadSourceCodeAction->setVisible(false);
+    ui->deleteSourceCodeAction->setVisible(true);
     ui->updateSegmentAmountAction->setEnabled(false);
 
     ui->nextStepButton->setVisible(true);
@@ -501,7 +514,8 @@ void MainWindow::onDeleteColor()
 
     if (colorActions.size() != 1)
     {
-        colorIdx = QInputDialog::getInt(this,
+        colorIdx = QInputDialog::getInt(
+                       this,
                        tr("Удалить цвет"),
                        tr("Укажите номер цвета, который хотите удалить (#1-#%1):")
                            .arg(colorActions.size()),
@@ -613,4 +627,83 @@ void MainWindow::onRobotDataItemClicked(QListWidgetItem* item)
 
     robotViewWidget->setHighlightedJoint(jointIndex);
     onRobotDataShouldUpdate();
+}
+
+void MainWindow::onChangeTickAmountRequested()
+{
+    bool ok;
+    int const tickAmount = QInputDialog::getInt(
+        this,
+        tr("Изменить количество делений"),
+        tr("Укажите количество делений (%1-%2):")
+            .arg(RobotViewWidget::minTickAmount)
+            .arg(RobotViewWidget::maxTickAmount),
+        RobotViewWidget::tickAmount,
+        RobotViewWidget::minTickAmount,
+        RobotViewWidget::maxTickAmount,
+        1,
+        &ok);
+    RobotViewWidget::tickAmount = (ok ? tickAmount : RobotViewWidget::tickAmount);
+    ui->tickAmountAction->setText(tr("Количество делений = %1").arg(RobotViewWidget::tickAmount));
+    if (robotViewWidget) robotViewWidget->update();
+}
+
+void MainWindow::onChangeTickSizeRequested()
+{
+    bool ok;
+    int const tickSize = QInputDialog::getInt(
+        this,
+        tr("Изменить количество делений"),
+        tr("Укажите количество делений (%1-%2):")
+            .arg(RobotViewWidget::minTickSize)
+            .arg(RobotViewWidget::maxTickSize),
+        RobotViewWidget::tickSize,
+        RobotViewWidget::minTickSize,
+        RobotViewWidget::maxTickSize,
+        1,
+        &ok);
+    RobotViewWidget::tickSize = (ok ? tickSize : RobotViewWidget::tickSize);
+    ui->tickSizeAction->setText(tr("Размер делений = %1").arg(RobotViewWidget::tickSize));
+    if (robotViewWidget) robotViewWidget->update();
+}
+
+void MainWindow::onChangeSegmentThicknessRequested()
+{
+    bool ok;
+    int const segmentThickness =
+        QInputDialog::getInt(
+            this,
+            "Изменить толщину сегментов",
+            tr("Укажите толщину сегменов (%1-%2)")
+                .arg(RobotViewWidget::minSegmentThickness)
+                .arg(RobotViewWidget::maxSegmentThickness),
+            RobotViewWidget::segmentThickness,
+            RobotViewWidget::minSegmentThickness,
+            RobotViewWidget::maxSegmentThickness,
+            1,
+            &ok
+        );
+    RobotViewWidget::segmentThickness = (ok ? segmentThickness : RobotViewWidget::segmentThickness);
+    ui->segmentThicknessAction->setText(tr("Толщина сегментов = %1").arg(RobotViewWidget::segmentThickness));
+    if (robotViewWidget) robotViewWidget->update();
+}
+void MainWindow::onChangeJointSizeRequested()
+{
+    bool ok;
+    int const jointSize =
+        QInputDialog::getInt(
+            this,
+            "Изменить размер шарниров",
+            tr("Укажите размер шарниров (%1-%2)")
+                .arg(RobotViewWidget::minJointSize)
+                .arg(RobotViewWidget::maxJointSize),
+            RobotViewWidget::jointSize,
+            RobotViewWidget::minJointSize,
+            RobotViewWidget::maxJointSize,
+            1,
+            &ok
+        );
+    RobotViewWidget::jointSize = (ok ? jointSize : RobotViewWidget::jointSize);
+    ui->jointSizeAction->setText(tr("Размер шарниров = %1").arg(RobotViewWidget::jointSize));
+    if (robotViewWidget) robotViewWidget->update();
 }

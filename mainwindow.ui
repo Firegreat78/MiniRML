@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1450</width>
+    <width>1403</width>
     <height>764</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1450</width>
+    <width>1403</width>
     <height>764</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>1450</width>
+    <width>1403</width>
     <height>764</height>
    </size>
   </property>
@@ -35,6 +35,12 @@
       <height>641</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
    </widget>
    <widget class="QPushButton" name="nextStepButton">
     <property name="enabled">
@@ -48,6 +54,13 @@
       <height>41</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>14</pointsize>
+      <bold>false</bold>
+     </font>
+    </property>
     <property name="text">
      <string>Следующий шаг</string>
     </property>
@@ -60,6 +73,12 @@
       <width>170</width>
       <height>641</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>8</pointsize>
+     </font>
     </property>
    </widget>
    <widget class="QLabel" name="variablesLabel">
@@ -75,6 +94,11 @@
      <font>
       <family>Segoe Print</family>
       <pointsize>16</pointsize>
+      <italic>false</italic>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <kerning>true</kerning>
      </font>
     </property>
     <property name="frameShape">
@@ -103,6 +127,11 @@
      <font>
       <family>Segoe Print</family>
       <pointsize>16</pointsize>
+      <italic>false</italic>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <kerning>true</kerning>
      </font>
     </property>
     <property name="frameShape">
@@ -131,6 +160,11 @@
      <font>
       <family>Segoe Print</family>
       <pointsize>16</pointsize>
+      <italic>false</italic>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <kerning>true</kerning>
      </font>
     </property>
     <property name="frameShape">
@@ -155,6 +189,12 @@
       <height>641</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
    </widget>
    <widget class="QLabel" name="projectionWidgetLabel">
     <property name="enabled">
@@ -172,6 +212,11 @@
      <font>
       <family>Segoe Print</family>
       <pointsize>16</pointsize>
+      <italic>false</italic>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <kerning>true</kerning>
      </font>
     </property>
     <property name="autoFillBackground">
@@ -196,22 +241,32 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1450</width>
+     <width>1403</width>
      <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMain">
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+     </font>
+    </property>
     <property name="title">
      <string>Код</string>
     </property>
     <addaction name="uploadSourceCodeAction"/>
-    <addaction name="updateSegmentAmountAction"/>
     <addaction name="deleteSourceCodeAction"/>
     <addaction name="separator"/>
     <addaction name="toggleInstrumentAction"/>
     <addaction name="separator"/>
+    <addaction name="updateSegmentAmountAction"/>
    </widget>
    <widget class="QMenu" name="menuView">
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+     </font>
+    </property>
     <property name="title">
      <string>Вид</string>
     </property>
@@ -220,8 +275,18 @@
     <addaction name="actionPlaneYOZ"/>
     <addaction name="separator"/>
     <addaction name="workspaceSizeAction"/>
+    <addaction name="separator"/>
+    <addaction name="tickAmountAction"/>
+    <addaction name="tickSizeAction"/>
+    <addaction name="segmentThicknessAction"/>
+    <addaction name="jointSizeAction"/>
    </widget>
    <widget class="QMenu" name="menuColors">
+    <property name="font">
+     <font>
+      <family>Segoe Print</family>
+     </font>
+    </property>
     <property name="title">
      <string>Цвета</string>
     </property>
@@ -241,12 +306,18 @@
   </action>
   <action name="updateSegmentAmountAction">
    <property name="text">
-    <string>кол-во сегментов робота (заполнится программно)</string>
+    <string>Кол-во сегментов робота (заполнится программно)</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Segoe Print</family>
+     <bold>false</bold>
+    </font>
    </property>
   </action>
   <action name="deleteSourceCodeAction">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Остановить парсер</string>
@@ -363,6 +434,34 @@
    </property>
    <property name="text">
     <string>Удалить цвет</string>
+   </property>
+  </action>
+  <action name="saveCurrentStateAction">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Сохранить состояние</string>
+   </property>
+  </action>
+  <action name="tickAmountAction">
+   <property name="text">
+    <string>Количество делений (заполнится программно)</string>
+   </property>
+  </action>
+  <action name="tickSizeAction">
+   <property name="text">
+    <string>Размер делений (заполнится программно)</string>
+   </property>
+  </action>
+  <action name="segmentThicknessAction">
+   <property name="text">
+    <string>Толцина сегментов (заполнится программно)</string>
+   </property>
+  </action>
+  <action name="jointSizeAction">
+   <property name="text">
+    <string>Размер шарниров (заполнится программно)</string>
    </property>
   </action>
  </widget>

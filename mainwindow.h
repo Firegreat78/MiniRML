@@ -66,6 +66,10 @@ private slots:
     void onEditColor();
     void onNextStep();
     void onRobotDataItemClicked(QListWidgetItem*);
+    void onChangeTickAmountRequested();
+    void onChangeTickSizeRequested();
+    void onChangeSegmentThicknessRequested();
+    void onChangeJointSizeRequested();
 
 public slots:
     void onVariablesReceived(std::vector<std::pair<std::string, SemNode*>> const&);
