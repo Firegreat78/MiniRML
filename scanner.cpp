@@ -82,6 +82,9 @@ LexemType Scanner::checkKeyword(const string& s) {
     if (s == "ctg") return LexemType::KW_CTG;
     if (s == "arcsin") return LexemType::KW_ARCSIN;
     if (s == "arccos") return LexemType::KW_ARCCOS;
+    if (s == "arctan") return LexemType::KW_ARCTAN;
+    if (s == "arcctg") return LexemType::KW_ARCCTG;
+    if (s == "atan2") return LexemType::KW_ATAN2;
     if (s == "pi") return LexemType::KW_PI;
     if (s == "deg2rad") return LexemType::KW_DEG2RAD;
     if (s == "rad2deg") return LexemType::KW_RAD2DEG;

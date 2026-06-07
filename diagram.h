@@ -179,6 +179,9 @@ private:
     //       | Ctg
     //       | Arcsin
     //       | Arccos
+    //       | Arctan
+    //       | Arcctg
+    //       | Atan2
     //       | Pi
     //       | Deg2Rad
     //       | Rad2Deg
@@ -213,6 +216,18 @@ private:
     // арккосинус
     // Arccos -> 'arccos' '(' Expr ')'
     DATA_TYPE Arccos();
+
+    // арктангенс
+    // Arctan -> 'arctan' '(' Expr ')'
+    DATA_TYPE Arctan();
+
+    // арккотангенс
+    // Arctan -> 'arcctg' '(' Expr ')'
+    DATA_TYPE Arcctg();
+
+    // арктангенс двух аргументов (y, x)
+    // Atan2 -> 'atan2' '(' Expr ',' Expr ')'
+    DATA_TYPE Atan2();
 
     // градусы -> радианы
     // Deg2Rad -> 'deg2rad' '(' Expr ')'

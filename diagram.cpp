@@ -665,7 +665,7 @@ void Diagram::Stmt() {
     synError("unknown statement form");
 }
 
-// CallStmt -> Call ;
+// CallStmt -> Call ';'
 void Diagram::CallStmt()
 {
     Call();
@@ -1456,6 +1456,9 @@ DATA_TYPE Diagram::Prim()
     case LexemType::KW_CTG: return Ctg();
     case LexemType::KW_ARCSIN: return Arcsin();
     case LexemType::KW_ARCCOS: return Arccos();
+    case LexemType::KW_ARCTAN: return Arctan();
+    case LexemType::KW_ARCCTG: return Arcctg();
+    case LexemType::KW_ATAN2: return Atan2();
     case LexemType::KW_PI: return Pi();
     case LexemType::KW_DEG2RAD: return Deg2Rad();
     case LexemType::KW_RAD2DEG: return Rad2Deg();
@@ -1767,6 +1770,102 @@ DATA_TYPE Diagram::Arccos()
     double const result = std::acos(v.Value.v_double);
     v.Value.v_double = result;
     pushValue(v);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// арктангенс
+// Arctan -> 'arctan' '(' Expr ')'
+DATA_TYPE Diagram::Arctan()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function arctan");
+
+    DATA_TYPE dt = Expr();
+    if (dt != DATA_TYPE::TYPE_DOUBLE)
+        semError("Only double can be passed to the built-in function arctan");
+
+    SemNode v = popValue();
+
+    double const result = std::atan(v.Value.v_double);
+    v.Value.v_double = result;
+    pushValue(v);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// арккотангенс
+// Arcctg -> 'arcctg' '(' Expr ')'
+DATA_TYPE Diagram::Arcctg()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function arcctg");
+
+    DATA_TYPE dt = Expr();
+    if (dt != DATA_TYPE::TYPE_DOUBLE)
+        semError("Only double can be passed to the built-in function arcctg");
+
+    SemNode v = popValue();
+
+    double const result = PI / 2.0 - std::atan(v.Value.v_double);
+    v.Value.v_double = result;
+    pushValue(v);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Atan2 -> 'atan2' '(' Expr ',' Expr ')'
+DATA_TYPE Diagram::Atan2()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function atan2");
+
+    DATA_TYPE dt1 = Expr();
+    if (dt1 != DATA_TYPE::TYPE_DOUBLE)
+        semError("First argument of atan2 must be of type double");
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError("Expected ',' after first argument in atan2");
+
+    DATA_TYPE dt2 = Expr();
+    if (dt2 != DATA_TYPE::TYPE_DOUBLE)
+        semError("Second argument of atan2 must be of type double");
+
+    SemNode xNode = popValue();
+    SemNode yNode = popValue();
+
+    double x = xNode.Value.v_double;
+    double y = yNode.Value.v_double;
+
+    // Check for both arguments being zero
+    if (std::abs(x) < MIN_VAL && std::abs(y) < MIN_VAL)
+        interpError(tr("atan2(%1, %2) is undefined (both arguments are zero)")
+            .arg(y).arg(x).toStdString()
+        );
+
+    double const result = std::atan2(y, x);
+
+    SemNode resultNode;
+    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
+    resultNode.hasValue = true;
+    resultNode.Value.v_double = result;
+    pushValue(resultNode);
 
     t = nextToken();
     if (t != LexemType::RPAREN)

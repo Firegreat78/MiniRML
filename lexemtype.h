@@ -34,6 +34,9 @@ enum class LexemType
     KW_CTG,        // котангенс
     KW_ARCSIN,     // арксинус
     KW_ARCCOS,     // арккосинус
+    KW_ARCTAN,     // арктангенс
+    KW_ARCCTG,     // арккотангенс
+    KW_ATAN2,      // арктангенс двух аргументов
     KW_PI,         // число пи
     KW_DEG2RAD,    // градусы -> радианы
     KW_RAD2DEG,    // радианы -> градусы
