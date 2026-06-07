@@ -88,6 +88,7 @@ LexemType Scanner::checkKeyword(const string& s) {
     if (s == "pi") return LexemType::KW_PI;
     if (s == "deg2rad") return LexemType::KW_DEG2RAD;
     if (s == "rad2deg") return LexemType::KW_RAD2DEG;
+    if (s == "compare_double") return LexemType::KW_COMPARE_DOUBLE;
     return LexemType::IDENT;
 }
 

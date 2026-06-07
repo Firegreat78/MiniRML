@@ -40,6 +40,7 @@ enum class LexemType
     KW_PI,         // число пи
     KW_DEG2RAD,    // градусы -> радианы
     KW_RAD2DEG,    // радианы -> градусы
+    KW_COMPARE_DOUBLE, // сравнение двух чисел с плавающей запятой
 
     // Идентификатор
     IDENT,

@@ -1447,8 +1447,7 @@ DATA_TYPE Diagram::Prim()
 {
     LexemType t = nextToken();
 
-    // Built-in functions
-    // Built-in functions
+    // сначала встроенные функции
     switch (t) {
     case LexemType::KW_SIN: return Sin();
     case LexemType::KW_COS: return Cos();
@@ -1462,6 +1461,7 @@ DATA_TYPE Diagram::Prim()
     case LexemType::KW_PI: return Pi();
     case LexemType::KW_DEG2RAD: return Deg2Rad();
     case LexemType::KW_RAD2DEG: return Rad2Deg();
+    case LexemType::KW_COMPARE_DOUBLE: return CompareDouble();
     default: break;
     }
 
@@ -1914,7 +1914,73 @@ DATA_TYPE Diagram::Rad2Deg()
     return DATA_TYPE::TYPE_DOUBLE;
 }
 
+// compare_double - compares two double values with specified decimal precision
+// compare_double(lhs, rhs, decimal) -> returns true if lhs and rhs are equal within the specified decimal places
+DATA_TYPE Diagram::CompareDouble()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function compare_double");
 
+    DATA_TYPE dt1 = Expr();
+    if (dt1 != DATA_TYPE::TYPE_DOUBLE)
+        semError("First argument of compare_double must be of type double");
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError("Expected ',' after first argument in compare_double");
+
+    DATA_TYPE dt2 = Expr();
+    if (dt2 != DATA_TYPE::TYPE_DOUBLE)
+        semError("Second argument of compare_double must be of type double");
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError("Expected ',' after second argument in compare_double");
+
+    DATA_TYPE dt3 = Expr();
+    if (!(
+            dt3 == DATA_TYPE::TYPE_SHORT_INT ||
+            dt3 == DATA_TYPE::TYPE_INT ||
+            dt3 == DATA_TYPE::TYPE_LONG_INT)
+        )
+        semError("Third argument of compare_double must be an integer (number of decimal places)");
+
+    SemNode decimalNode = popValue();
+    SemNode rhsNode = popValue();
+    SemNode lhsNode = popValue();
+
+    double const lhs = lhsNode.Value.v_double;
+    double const rhs = rhsNode.Value.v_double;
+
+    int64_t decimal;
+    switch (dt3)
+    {
+    case DATA_TYPE::TYPE_SHORT_INT: decimal = decimalNode.Value.v_int16; break;
+    case DATA_TYPE::TYPE_INT: decimal = decimalNode.Value.v_int32; break;
+    case DATA_TYPE::TYPE_LONG_INT: decimal = decimalNode.Value.v_int64; break;
+    default: interpError("Internal error occured when executing compare_double built-in function");
+    }
+
+    if (decimal < 0)
+        interpError("Decimal places argument in compare_double cannot be negative");
+
+    double epsilon = std::pow(10.0, -decimal);
+
+    double diff = lhs - rhs;
+
+    SemNode resultNode;
+    resultNode.DataType = DATA_TYPE::TYPE_SHORT_INT;
+    resultNode.hasValue = true;
+    resultNode.Value.v_int16 = (std::abs(diff) < epsilon ? 0 : diff > 0 ? 1 : -1);
+    pushValue(resultNode);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_SHORT_INT;
+}
 
 // IfStmt -> 'if' '(' Expr ')' Stmt ['else' Stmt]
 void Diagram::IfStmt()
