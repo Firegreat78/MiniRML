@@ -2021,8 +2021,6 @@ void Diagram::executeMove(
         rd.setY(i, y + y_offset.Value.v_double);
     }
 
-    checkJointsInsideWorkspace();
-
     int l, c;
     tie(l, c) = sc->getLineCol();
 
@@ -2031,6 +2029,7 @@ void Diagram::executeMove(
                            .arg(c)
                            .arg(x_offset.Value.v_double)
                            .arg(y_offset.Value.v_double));
+    checkJointsInsideWorkspace();
 }
 
 void Diagram::executeRotate(
@@ -2069,7 +2068,6 @@ void Diagram::executeRotate(
         radians.Value.v_double
         );
 
-    checkJointsInsideWorkspace();
 
     int l, c;
     tie(l, c) = sc->getLineCol();
@@ -2082,6 +2080,7 @@ void Diagram::executeRotate(
                           .arg(normalY.Value.v_double)
                           .arg(normalZ.Value.v_double)
                           .arg(radians.Value.v_double);
+    checkJointsInsideWorkspace();
     waitForButtonPress(s);
 }
 
