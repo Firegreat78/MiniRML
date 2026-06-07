@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QList>
 
+#include "robotdata.h"
+
 class RobotViewWidget : public QWidget
 {
     Q_OBJECT
@@ -24,9 +26,9 @@ public:
 
     void setCurrentPlane(ViewPlane);
     void setInstrumentEnabled(bool);
-    void setHighlightedJoint(uint8_t);
+    void setHighlightedJoint(decltype(RobotData::segmentAmount));
 
-    uint8_t getHighlightedJoint() const;
+    decltype(RobotData::segmentAmount) getHighlightedJoint() const;
 
     static constexpr uint8_t maxColorAmount = 12;
     static QList<QColor> colors;
@@ -59,7 +61,7 @@ private:
     double maxCoord;
     double scale;
 
-    uint8_t highlightedJoint;
+    decltype(RobotData::segmentAmount) highlightedJoint;
 
     void drawAxes(QPainter&);
     void drawRobot(QPainter&);

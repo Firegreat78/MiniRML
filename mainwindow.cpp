@@ -282,6 +282,9 @@ void MainWindow::onRobotDataShouldUpdate()
             .arg(i == robotViewWidget->getHighlightedJoint() ? "\n[выделен]" : "");
         ui->robotDataListWidget->item(i)->setText(s);
     }
+    ui->robotDataListWidget->item(RobotData::segmentAmount + 1)->setHidden(
+        robotViewWidget->getHighlightedJoint() > RobotData::segmentAmount
+    );
     redrawRobot();
 }
 
@@ -428,7 +431,7 @@ void MainWindow::onLoadedSrcCode()
     connect(ui->robotDataListWidget, &QListWidget::itemClicked, this, &MainWindow::onRobotDataItemClicked);
     for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
     {
-        QListWidgetItem* item = new QListWidgetItem();
+        QListWidgetItem* item = new QListWidgetItem(ui->robotDataListWidget);
         item->setText(tr("Шарнир #%1\n[%2 %3 %4]\n%5")
                           .arg(i + 1)
                           .arg(rd.getX(i))
@@ -436,8 +439,11 @@ void MainWindow::onLoadedSrcCode()
                           .arg(rd.getZ(i))
                           .arg(RobotViewWidget::getColor(i).name().toUpper()));
         item->setData(Qt::UserRole, i);
-        ui->robotDataListWidget->addItem(item);
     }
+
+    QListWidgetItem* item = new QListWidgetItem(ui->robotDataListWidget);
+    item->setText("[снять выделение]");
+    item->setData(Qt::UserRole, numeric_limits<decltype(RobotData::segmentAmount)>::max());
 
     parserThrd->start();
 }
@@ -477,6 +483,7 @@ void MainWindow::onUpdateWorkspaceSize()
 
 void MainWindow::onParseFinished()
 {
+    ui->nextStepButton->setVisible(false);
     QMessageBox::information(
         this,
         "Parser sucessfully finished working!",
@@ -529,7 +536,6 @@ void MainWindow::onDeleteColor()
     }
     else
     {
-        // Ask for confirmation when only one color left
         QMessageBox::StandardButton reply = QMessageBox::question(
             this,
             tr("Удалить цвет"),

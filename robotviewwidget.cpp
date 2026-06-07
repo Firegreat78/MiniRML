@@ -9,20 +9,6 @@
 
 using namespace std;
 
-// подобрать такой цвет, чтобы было различим выбранный шарнир
-QColor getDistinguishableColor(const QColor& baseColor)
-{
-    int h, s, l;
-    baseColor.getHsl(&h, &s, &l);
-
-    int newHue = (h + 180) % 360;
-
-    int newLight = l > 128 ? l - 80 : l + 80;
-    newLight = qBound(0, newLight, 255);
-
-    return QColor::fromHsl(newHue, s, newLight);
-}
-
 QList<QColor> RobotViewWidget::colors = {};
 
 uint8_t RobotViewWidget::tickAmount = (minTickAmount + maxTickAmount) / 2;
@@ -47,7 +33,7 @@ RobotViewWidget::RobotViewWidget(
 {
     setFixedSize(widgetSize, widgetSize);
     scale = widgetSize / (2.0 * maxCoord);
-    highlightedJoint = 0;
+    highlightedJoint = numeric_limits<decltype(RobotData::segmentAmount)>::max();
 }
 
 void RobotViewWidget::setCurrentPlane(ViewPlane plane)
@@ -60,12 +46,12 @@ void RobotViewWidget::setInstrumentEnabled(bool instrumentEnabled)
     this->instrumentEnabled = instrumentEnabled;
 }
 
-void RobotViewWidget::setHighlightedJoint(uint8_t jointIndex)
+void RobotViewWidget::setHighlightedJoint(decltype(RobotData::segmentAmount) jointIndex)
 {
     this->highlightedJoint = jointIndex;
 }
 
-uint8_t RobotViewWidget::getHighlightedJoint() const
+decltype(RobotData::segmentAmount) RobotViewWidget::getHighlightedJoint() const
 {
     return this->highlightedJoint;
 }
@@ -116,45 +102,37 @@ void RobotViewWidget::drawAxes(QPainter& painter)
     int const centerX = width() / 2;
     int const centerY = height() / 2;
 
-    // Get workspace range
     auto& rd = RobotData::getInstance();
 
-    // Draw axes lines
     painter.setPen(QPen(Qt::lightGray, 1));
     painter.drawLine(0, centerY, width(), centerY);
     painter.drawLine(centerX, 0, centerX, height());
 
-    // Calculate tick spacing
     double const step = RobotData::workspaceSize / tickAmount;
 
-    // Set font for tick labels
     painter.setFont(QFont("Segoe Print", 8));
     painter.setPen(QPen(Qt::gray, 1));
 
     for (int i = -tickAmount; i <= tickAmount; i++)
     {
         double coordValue = i * step;
-        if (std::abs(coordValue) > maxCoord) continue;
+        if (i == 0 || std::abs(coordValue) > maxCoord) continue;
 
         int screenX = centerX + static_cast<int>((coordValue / maxCoord) * centerX);
 
-        // Skip if outside widget bounds
         if (screenX < 0 || screenX > width()) continue;
 
-        // Draw tick mark
         painter.drawLine(screenX, centerY - tickSize, screenX, centerY + tickSize);
 
-        // Draw tick label
         QString label = QString::number(coordValue, 'f', 1);
         painter.drawText(screenX - 15, centerY - 8, 30, 20,
                          Qt::AlignCenter, label);
     }
 
-    // Draw Y-axis ticks (vertical)
     for (int i = -tickAmount; i <= tickAmount; i++)
     {
         double coordValue = i * step;
-        if (std::abs(coordValue) > maxCoord) continue;
+        if (i == 0 || std::abs(coordValue) > maxCoord) continue;
 
         int screenY = centerY - static_cast<int>((coordValue / maxCoord) * centerY);
 
@@ -202,16 +180,10 @@ void RobotViewWidget::drawRobot(QPainter& painter)
             );
         QColor c(getColor(i));
 
-        if (i == highlightedJoint)
-        {
-            qreal const outlineSize = jointSize*2.0;
-            painter.setBrush(QBrush(getDistinguishableColor(c)));
-            painter.drawEllipse(p, outlineSize, outlineSize);
-        }
-
         // Draw filled circle
         painter.setBrush(QBrush(c));
-        painter.drawEllipse(p, jointSize, jointSize);
+        qreal sz = i == highlightedJoint ? jointSize * 1.8  : jointSize;
+        painter.drawEllipse(p, sz, sz);
 
         if (i != RobotData::segmentAmount || !instrumentEnabled) continue;
 
@@ -223,12 +195,12 @@ void RobotViewWidget::drawRobot(QPainter& painter)
 
 void RobotViewWidget::drawPerpendiculars(QPainter& painter)
 {
-    if (highlightedJoint == numeric_limits<uint8_t>::max())
+    if (highlightedJoint > RobotData::segmentAmount)
         return;
 
     auto& rd = RobotData::getInstance();
 
-    // Get selected joint position
+    // позиция выделенного шарнира
     QPointF jointPos = project(
         rd.getX(highlightedJoint),
         rd.getY(highlightedJoint),
@@ -238,26 +210,19 @@ void RobotViewWidget::drawPerpendiculars(QPainter& painter)
     int centerX = width() / 2;
     int centerY = height() / 2;
 
-    // Calculate perpendicular points on axes
-    QPointF perpToX(jointPos.x(), centerY);  // Perpendicular to X-axis (vertical line to X-axis)
-    QPointF perpToY(centerX, jointPos.y());   // Perpendicular to Y-axis (horizontal line to Y-axis)
+    QPointF perpToX(jointPos.x(), centerY);
+    QPointF perpToY(centerX, jointPos.y());
 
-    // Set pen style for perpendiculars
     painter.setPen(QPen(Qt::yellow, 2, Qt::DashLine));
 
-    // Draw perpendicular to X-axis (vertical line)
     painter.drawLine(jointPos, perpToX);
-
-    // Draw perpendicular to Y-axis (horizontal line)
     painter.drawLine(jointPos, perpToY);
 
-    // Optional: Draw small circles at intersection points
     painter.setBrush(Qt::NoBrush);
     painter.setPen(QPen(Qt::yellow, 2));
     painter.drawEllipse(perpToX, 4, 4);
     painter.drawEllipse(perpToY, 4, 4);
 
-    // Optional: Add coordinate labels
     painter.setPen(QPen(Qt::white, 1));
     painter.setFont(QFont("Segoe Print", 8));
 
@@ -266,10 +231,14 @@ void RobotViewWidget::drawPerpendiculars(QPainter& painter)
     QString zCoord = QString::number(rd.getZ(highlightedJoint), 'f', 2);
 
     painter.drawText(perpToX.x() + 5, perpToX.y() - 5,
-                     QString("%1: %2").arg(currentPlane == ViewPlane::XOY || currentPlane == ViewPlane::XOZ ? "X" : "Y")
-                         .arg(currentPlane == ViewPlane::XOY || currentPlane == ViewPlane::XOZ ? xCoord : yCoord));
+        tr("%1: %2")
+            .arg(currentPlane == ViewPlane::YOZ ? "Y" : "Z")
+            .arg(currentPlane == ViewPlane::YOZ ? yCoord : xCoord)
+    );
 
     painter.drawText(perpToY.x() + 5, perpToY.y() - 5,
-                     QString("%1: %2").arg(currentPlane == ViewPlane::XOY ? "Y" : "Z")
-                         .arg(currentPlane == ViewPlane::XOY ? yCoord : zCoord));
+        tr("%1: %2")
+            .arg(currentPlane == ViewPlane::XOY ? "Y" : "Z")
+            .arg(currentPlane == ViewPlane::XOY ? yCoord : zCoord)
+    );
 }
