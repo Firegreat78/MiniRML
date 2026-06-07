@@ -1072,7 +1072,7 @@ void Diagram::ArgListOpt(vector<SemNode>& args) {
     }
 }
 
-// Expr -> ['+'|'-'] Rel ( ('==' | '!=') Rel )*
+// Expr -> ['+'|'-'] LogicOr
 DATA_TYPE Diagram::Expr()
 {
     LexemType t = peekToken();
@@ -1108,74 +1108,53 @@ DATA_TYPE Diagram::Expr()
 
     DATA_TYPE left = LogicOr();
 
-    if (hasUnary)
+    if (!hasUnary) return left;
+
+    if (!(
+            left == DATA_TYPE::TYPE_INT ||
+            left == DATA_TYPE::TYPE_SHORT_INT ||
+            left == DATA_TYPE::TYPE_LONG_INT ||
+            left == DATA_TYPE::TYPE_DOUBLE
+            ))
+        semError("unary '+'/'-' is only applicable to numeric types");
+
+    SemNode operand = popValue();
+
+    SemNode result;
+
+    if (unaryOp == "-")
     {
-        if (!(
-                left == DATA_TYPE::TYPE_INT ||
-                left == DATA_TYPE::TYPE_SHORT_INT ||
-                left == DATA_TYPE::TYPE_LONG_INT ||
-                left == DATA_TYPE::TYPE_DOUBLE
-                ))
+        SemNode minusOne;
+        minusOne.DataType = left;
+        minusOne.hasValue = true;
+
+        switch (left)
         {
-            semError("unary '+'/'-' is only applicable to numeric types");
+        case DATA_TYPE::TYPE_SHORT_INT: minusOne.Value.v_int16 = -1; break;
+        case DATA_TYPE::TYPE_INT: minusOne.Value.v_int32 = -1; break;
+        case DATA_TYPE::TYPE_LONG_INT: minusOne.Value.v_int64 = -1; break;
+        case DATA_TYPE::TYPE_DOUBLE: minusOne.Value.v_double = -1.0; break;
+        default: break;
         }
 
-        SemNode operand = popValue();
+        auto lc = sc->getLineCol();
 
-        SemNode result;
-
-        if (unaryOp == "-")
-        {
-            SemNode minusOne;
-
-            minusOne.DataType = left;
-            minusOne.hasValue = true;
-
-            switch (left)
-            {
-            case DATA_TYPE::TYPE_SHORT_INT:
-                minusOne.Value.v_int16 = -1;
-                break;
-
-            case DATA_TYPE::TYPE_INT:
-                minusOne.Value.v_int32 = -1;
-                break;
-
-            case DATA_TYPE::TYPE_LONG_INT:
-                minusOne.Value.v_int64 = -1;
-                break;
-
-            case DATA_TYPE::TYPE_DOUBLE:
-                minusOne.Value.v_double = -1.0;
-                break;
-
-            default:
-                break;
-            }
-
-            auto lc = sc->getLineCol();
-
-            result = Tree::executeArithmeticOp(
-                operand,
-                minusOne,
-                "*",
-                lc.first,
-                lc.second
-                );
-        }
-        else
-        {
-            result = operand;
-        }
-
-        pushValue(result);
-
-        left = result.DataType;
+        result = Tree::executeArithmeticOp(
+            operand,
+            minusOne,
+            "*",
+            lc.first,
+            lc.second
+            );
     }
+    else result = operand;
+    pushValue(result);
 
+    left = result.DataType;
     return left;
 }
 
+// LogicOr -> LogicAnd ( '||' LogicAnd )*
 DATA_TYPE Diagram::LogicOr()
 {
     DATA_TYPE left = LogicAnd();
@@ -1219,6 +1198,7 @@ DATA_TYPE Diagram::LogicOr()
     return left;
 }
 
+// LogicAnd -> Equality ( '&&' Equality )*
 DATA_TYPE Diagram::LogicAnd()
 {
     DATA_TYPE left = Equality();
@@ -1262,6 +1242,7 @@ DATA_TYPE Diagram::LogicAnd()
     return left;
 }
 
+// Equality -> Rel ( ('==' | '!=') Rel )*
 DATA_TYPE Diagram::Equality()
 {
     DATA_TYPE left = Rel();
