@@ -14,9 +14,11 @@ public:
     abrupt_parse_finish(const char* ch) : runtime_error(ch) {}
 };
 
-constexpr double PI = 3.14159265358979323846;
+constexpr double PI = 3.1415926535897932384626433832795;
 constexpr double DEG_TO_RAD_FACTOR = PI / 180.0;
 constexpr double RAD_TO_DEG_FACTOR = 180.0 / PI;
+
+constexpr double MIN_VAL = 1e-24;
 
 inline double deg2rad(double degrees) {
     return degrees * DEG_TO_RAD_FACTOR;
@@ -1465,10 +1467,19 @@ DATA_TYPE Diagram::Prim()
     LexemType t = nextToken();
 
     // Built-in functions
-    if (t == LexemType::KW_SIN) return Sin();
-    if (t == LexemType::KW_COS) return Cos();
-    if (t == LexemType::KW_DEG2RAD) return Deg2Rad();
-    if (t == LexemType::KW_RAD2DEG) return Rad2Deg();
+    // Built-in functions
+    switch (t) {
+    case LexemType::KW_SIN: return Sin();
+    case LexemType::KW_COS: return Cos();
+    case LexemType::KW_TAN: return Tan();
+    case LexemType::KW_CTG: return Ctg();
+    case LexemType::KW_ARCSIN: return Arcsin();
+    case LexemType::KW_ARCCOS: return Arccos();
+    case LexemType::KW_PI: return Pi();
+    case LexemType::KW_DEG2RAD: return Deg2Rad();
+    case LexemType::KW_RAD2DEG: return Rad2Deg();
+    default: break;
+    }
 
     // First check unary minus for negative literals
     if (t == LexemType::MINUS)
@@ -1613,6 +1624,26 @@ DATA_TYPE Diagram::Prim()
     return DATA_TYPE::TYPE_INT;
 }
 
+// Pi -> 'pi' '(' ')'
+DATA_TYPE Diagram::Pi()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function pi");
+
+    SemNode node;
+    node.DataType = DATA_TYPE::TYPE_DOUBLE;
+    node.hasValue = true;
+    node.Value.v_double = PI;
+    pushValue(node);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
 // Sin -> 'sin' '(' Expr ')'
 DATA_TYPE Diagram::Sin()
 {
@@ -1649,6 +1680,116 @@ DATA_TYPE Diagram::Cos()
 
     t = nextToken();
     if (t != LexemType::RPAREN) synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Tan -> 'tan' '(' Expr ')'
+DATA_TYPE Diagram::Tan()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN) synError("Expected '(' after built-in function tan");
+
+    DATA_TYPE dt = Expr();
+    if (dt != DATA_TYPE::TYPE_DOUBLE) semError("Only double can be passed to the built-in function tan");
+
+    // pop the angle value in radians from the stack, apply tan, push back onto the stack
+    SemNode v = popValue();
+
+    double const s = std::sin(v.Value.v_double);
+    double const c = std::cos(v.Value.v_double);
+
+    if (std::abs(c) < MIN_VAL)
+        interpError(tr("Cannot evaluate tan(%1): cos(%1) is close to zero").arg(v.Value.v_double).toStdString());
+
+    double const tan = s/c;
+    v.Value.v_double = tan;
+    pushValue(v);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN) synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Ctg -> 'ctg' '(' Expr ')'
+DATA_TYPE Diagram::Ctg()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN) synError("Expected '(' after built-in function ctg");
+
+    DATA_TYPE dt = Expr();
+    if (dt != DATA_TYPE::TYPE_DOUBLE) semError("Only double can be passed to the built-in function ctg");
+
+    // pop the angle value in radians from the stack, apply ctg, push back onto the stack
+    SemNode v = popValue();
+
+    double const s = std::sin(v.Value.v_double);
+    double const c = std::cos(v.Value.v_double);
+
+    if (std::abs(s) < MIN_VAL)
+        interpError(tr("Cannot evaluate ctg(%1): sin(%1) is close to zero").arg(v.Value.v_double).toStdString());
+
+    double const ctg = c/s;
+    v.Value.v_double = ctg;
+    pushValue(v);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN) synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Arcsin -> 'arcsin' '(' Expr ')'
+DATA_TYPE Diagram::Arcsin()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function arcsin");
+
+    DATA_TYPE dt = Expr();
+    if (dt != DATA_TYPE::TYPE_DOUBLE)
+        semError("Only double can be passed to the built-in function arcsin");
+
+    SemNode v = popValue();
+
+    if (std::abs(v.Value.v_double) > 1.0)
+        interpError(tr("Cannot evaluate arcsin(%1): value outside domain [-1, 1]").arg(v.Value.v_double).toStdString());
+
+    double const result = std::asin(v.Value.v_double);
+    v.Value.v_double = result;
+    pushValue(v);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Arccos -> 'arccos' '(' Expr ')'
+DATA_TYPE Diagram::Arccos()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function arccos");
+
+    DATA_TYPE dt = Expr();
+    if (dt != DATA_TYPE::TYPE_DOUBLE)
+        semError("Only double can be passed to the built-in function arccos");
+
+    SemNode v = popValue();
+
+    if (std::abs(v.Value.v_double) > 1.0)
+        interpError(tr("Cannot evaluate arccos(%1): value outside domain [-1, 1]").arg(v.Value.v_double).toStdString());
+
+    double const result = std::acos(v.Value.v_double);
+    v.Value.v_double = result;
+    pushValue(v);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
 
     return DATA_TYPE::TYPE_DOUBLE;
 }
@@ -1692,6 +1833,8 @@ DATA_TYPE Diagram::Rad2Deg()
 
     return DATA_TYPE::TYPE_DOUBLE;
 }
+
+
 
 // IfStmt -> 'if' '(' Expr ')' Stmt ['else' Stmt]
 void Diagram::IfStmt()
@@ -1910,9 +2053,9 @@ void Diagram::executeRotate(
         normalZ.Value.v_double * normalZ.Value.v_double
         );
 
-    if (len < 1e-24) // todo: remove magic val
+    if (len < MIN_VAL)
     {
-        QString err_str(QString("Normal length is too small (%1)").arg(len));
+        QString err_str(QString("Normal length in Rotate command is too small (%1 < %2)").arg(len).arg(MIN_VAL));
         interpError(err_str.toStdString());
     }
 

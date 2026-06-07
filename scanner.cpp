@@ -78,6 +78,11 @@ LexemType Scanner::checkKeyword(const string& s) {
     if (s == "Rotate") return LexemType::KW_ROTATE;
     if (s == "sin") return LexemType::KW_SIN;
     if (s == "cos") return LexemType::KW_COS;
+    if (s == "tan") return LexemType::KW_TAN;
+    if (s == "ctg") return LexemType::KW_CTG;
+    if (s == "arcsin") return LexemType::KW_ARCSIN;
+    if (s == "arccos") return LexemType::KW_ARCCOS;
+    if (s == "pi") return LexemType::KW_PI;
     if (s == "deg2rad") return LexemType::KW_DEG2RAD;
     if (s == "rad2deg") return LexemType::KW_RAD2DEG;
     return LexemType::IDENT;

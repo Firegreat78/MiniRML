@@ -89,8 +89,13 @@ private:
     DATA_TYPE Add(); // сложение/вычитание
     DATA_TYPE Mul(); // умножение/деление/modulo
     DATA_TYPE Prim(); // элементарное выражение
+    DATA_TYPE Pi(); // число пи ()
     DATA_TYPE Sin(); // синус
     DATA_TYPE Cos(); // косинус
+    DATA_TYPE Tan(); // тангенс
+    DATA_TYPE Ctg(); // котангенс
+    DATA_TYPE Arcsin(); // арксинус
+    DATA_TYPE Arccos(); // арккосинус
     DATA_TYPE Deg2Rad(); // градусы -> радианы
     DATA_TYPE Rad2Deg(); // радианы -> градусы
     void Call(); // вызов функции

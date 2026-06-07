@@ -28,12 +28,15 @@ enum class LexemType
     KW_ROTATE,
 
     // встроенные функции
-    KW_SIN,
-    KW_COS,
-    KW_ARCSIN,
-    KW_ARCCOS,
-    KW_DEG2RAD,
-    KW_RAD2DEG,
+    KW_SIN,        // синус
+    KW_COS,        // косинус
+    KW_TAN,        // тангенс
+    KW_CTG,        // котангенс
+    KW_ARCSIN,     // арксинус
+    KW_ARCCOS,     // арккосинус
+    KW_PI,         // число пи
+    KW_DEG2RAD,    // градусы -> радианы
+    KW_RAD2DEG,    // радианы -> градусы
 
     // Идентификатор
     IDENT,
