@@ -81,8 +81,8 @@ QPointF RobotViewWidget::project(double x, double y, double z) const
         break;
 
     case ViewPlane::YOZ:
-        px = z;
-        py = -y;
+        px = y;
+        py = -z;
         break;
 
     case ViewPlane::XOZ:

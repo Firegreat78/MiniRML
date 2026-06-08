@@ -405,7 +405,7 @@ void MainWindow::onLoadedSrcCode()
         (*it)->setEnabled(false);
 
     robotViewWidget = new RobotViewWidget(679, RobotData::workspaceSize / 2.0, this);
-    robotViewWidget->move(ui->projectionWidgetLabel->x(), 61); // на ноутбуке: 71 вместо 61
+    robotViewWidget->move(ui->projectionWidgetLabel->x(), 71); // на ноутбуке: 71 вместо 61
     robotViewWidget->show();
 
     parserThrd = new QThread(this);

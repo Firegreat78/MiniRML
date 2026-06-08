@@ -13,7 +13,7 @@ using Point = std::array<double, 3>;
 class RobotData
 {
 private:
-    std::vector<Point> points; Point::value_type h;
+    std::vector<Point> points;
 
     RobotData();
     ~RobotData();
