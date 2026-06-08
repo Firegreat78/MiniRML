@@ -232,7 +232,7 @@ void RobotViewWidget::drawPerpendiculars(QPainter& painter)
 
     painter.drawText(perpToX.x() + 5, perpToX.y() - 5,
         tr("%1: %2")
-            .arg(currentPlane == ViewPlane::YOZ ? "Y" : "Z")
+            .arg(currentPlane == ViewPlane::YOZ ? "Y" : "X")
             .arg(currentPlane == ViewPlane::YOZ ? yCoord : xCoord)
     );
 
