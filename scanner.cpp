@@ -86,6 +86,15 @@ LexemType Scanner::checkKeyword(const string& s) {
     if (s == "arcctg") return LexemType::KW_ARCCTG;
     if (s == "atan2") return LexemType::KW_ATAN2;
     if (s == "pi") return LexemType::KW_PI;
+    if (s == "segment_amount") return LexemType::KW_SEGMENT_AMOUNT;
+    if (s == "segment_length") return LexemType::KW_SEGMENT_LENGTH;
+    if (s == "get_x") return LexemType::KW_GET_X;
+    if (s == "get_y") return LexemType::KW_GET_Y;
+    if (s == "get_z") return LexemType::KW_GET_Z;
+    if (s == "hitx") return LexemType::KW_HIT_X;
+    if (s == "hity") return LexemType::KW_HIT_Y;
+    if (s == "hitz") return LexemType::KW_HIT_Z;
+    if (s == "workspace_size") return LexemType::KW_WORKSPACE_SIZE;
     if (s == "deg2rad") return LexemType::KW_DEG2RAD;
     if (s == "rad2deg") return LexemType::KW_RAD2DEG;
     if (s == "compare_double") return LexemType::KW_COMPARE_DOUBLE;

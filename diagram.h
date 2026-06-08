@@ -21,6 +21,12 @@ class Diagram : public QObject
     Q_OBJECT
 
 private:
+
+    enum class HitCoordinateType : uint8_t
+    {
+        X, Y, Z
+    };
+
     Scanner* sc;
     std::vector<LexemType> pushTok;
     std::vector<std::string> pushLex;
@@ -183,6 +189,15 @@ private:
     //       | Arcctg
     //       | Atan2
     //       | Pi
+    //       | SegmentAmount
+    //       | SegmentLength
+    //       | WorkspaceSize
+    //       | GetX
+    //       | GetY
+    //       | GetZ
+    //       | HitX
+    //       | HitY
+    //       | HitZ
     //       | Deg2Rad
     //       | Rad2Deg
     DATA_TYPE Prim();
@@ -192,6 +207,46 @@ private:
     // число пи
     // Pi -> 'pi' '(' ')'
     DATA_TYPE Pi();
+
+    // количество шарниров робота
+    // SegmentAmount -> 'segment_amount' '(' ')'
+    DATA_TYPE SegmentAmount();
+
+    // длина указанного сегмента
+    // SegmentLength -> 'segment_length' '(' Expr ')'
+    DATA_TYPE SegmentLength();
+
+    // размер рабочей области
+    // WorkspaceSize -> 'workspace_size' '(' ')'
+    DATA_TYPE WorkspaceSize();
+
+    // Координата X указанного шарнира
+    // GetX -> 'get_x' '(' Expr ')'
+    DATA_TYPE GetX();
+
+    // Координата Y указанного шарнира
+    // GetY -> 'get_y' '(' Expr ')'
+    DATA_TYPE GetY();
+
+    // Координата Z указанного шарнира
+    // GetZ -> 'get_z' '(' Expr ')'
+    DATA_TYPE GetZ();
+
+    // получить координату X|Y|Z первого удара о стенку рабочей области при вращении с заданными характеристиками
+    // Hit -> HitX | HitY | HitZ
+    DATA_TYPE Hit(HitCoordinateType);
+
+    // получить координату X первого удара о стенку рабочей области при вращении с заданными характеристиками
+    // HitX -> 'hitx' '(' Expr ',' Expr ',' Expr ',' Expr ',' Expr ',' Expr ')'
+    DATA_TYPE HitX();
+
+    // получить координату X первого удара о стенку рабочей области при вращении с заданными характеристиками
+    // HitY -> 'hity' '(' Expr ',' Expr ',' Expr ',' Expr ',' Expr ',' Expr ')'
+    DATA_TYPE HitY();
+
+    // получить координату X первого удара о стенку рабочей области при вращении с заданными характеристиками
+    // HitZ -> 'hitz' '(' Expr ',' Expr ',' Expr ',' Expr ',' Expr ',' Expr ')'
+    DATA_TYPE HitZ();
 
     // синус
     // Sin -> 'sin' '(' Expr ')'

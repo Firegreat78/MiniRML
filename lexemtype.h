@@ -28,19 +28,29 @@ enum class LexemType
     KW_ROTATE,
 
     // встроенные функции
-    KW_SIN,        // синус
-    KW_COS,        // косинус
-    KW_TAN,        // тангенс
-    KW_CTG,        // котангенс
-    KW_ARCSIN,     // арксинус
-    KW_ARCCOS,     // арккосинус
-    KW_ARCTAN,     // арктангенс
-    KW_ARCCTG,     // арккотангенс
-    KW_ATAN2,      // арктангенс двух аргументов
-    KW_PI,         // число пи
-    KW_DEG2RAD,    // градусы -> радианы
-    KW_RAD2DEG,    // радианы -> градусы
-    KW_COMPARE_DOUBLE, // сравнение двух чисел с плавающей запятой
+    KW_SIN,              // sin(x) - синус
+    KW_COS,              // cos(x) - косинус
+    KW_TAN,              // tan(x) - тангенс
+    KW_CTG,              // ctg(x) - котангенс
+    KW_ARCSIN,           // arcsin(x) - арксинус
+    KW_ARCCOS,           // arccos(x) - арккосинус
+    KW_ARCTAN,           // arctan(x) - арктангенс
+    KW_ARCCTG,           // arcctg(x) - арккотангенс
+    KW_ATAN2,            // atan2(y, x) - арктангенс двух аргументов
+    KW_PI,               // pi() - число π
+    KW_SEGMENT_AMOUNT,   // segment_amount() - количество сегментов робота
+    KW_SEGMENT_LENGTH,   // segment_length(idx) - длина сегмента
+    KW_GET_X,            // get_x(idx) - координата X шарнира
+    KW_GET_Y,            // get_y(idx) - координата Y шарнира
+    KW_GET_Z,            // get_z(idx) - координата Z шарнира
+    KW_HIT_X,
+    KW_HIT_Y,
+    KW_HIT_Z,
+    KW_WORKSPACE_SIZE,   // workspace_size() - размер рабочей области
+    KW_DEG2RAD,          // deg2rad(x) - градусы в радианы
+    KW_RAD2DEG,          // rad2deg(x) - радианы в градусы
+    KW_COMPARE_DOUBLE,   // compare_double(lhs, rhs, dec) - сравнение double с точностью
+
 
     // Идентификатор
     IDENT,

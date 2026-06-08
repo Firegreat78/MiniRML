@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <array>
 #include <vector>
+#include <optional>
 
 using Point = std::array<double, 3>;
 
@@ -12,7 +13,7 @@ using Point = std::array<double, 3>;
 class RobotData
 {
 private:
-    std::vector<Point> points;
+    std::vector<Point> points; Point::value_type h;
 
     RobotData();
     ~RobotData();
@@ -21,9 +22,9 @@ public:
     static constexpr std::uint8_t maxSegmentAmount = 16;
     static uint8_t segmentAmount;
 
-    static constexpr double minSegmentLength = 10.0;
-    static constexpr double maxSegmentLength = 10.0 * minSegmentLength;
-    static std::array<double, maxSegmentAmount> segmentLengths;
+    static constexpr Point::value_type minSegmentLength = 10.0;
+    static constexpr Point::value_type maxSegmentLength = 10.0 * minSegmentLength;
+    static std::array<Point::value_type, maxSegmentAmount> segmentLengths;
 
     static constexpr double minWorkspaceSize = 40.0;
     static constexpr double maxWorkspaceSize = 10.0 * minWorkspaceSize;
@@ -42,12 +43,15 @@ public:
     double getZ(uint8_t) const;
 
     // сеттеры
-    void setX(uint8_t, double);
-    void setY(uint8_t, double);
-    void setZ(uint8_t, double);
+    void setX(uint8_t, Point::value_type);
+    void setY(uint8_t, Point::value_type);
+    void setZ(uint8_t, Point::value_type);
 
     // поворот
     void rotate(uint8_t, double, double, double, double);
+
+    // вернуть координату, если шарнир выйдет за пределы при повороте
+    std::optional<Point> getFirstWorkspaceHitCoord(uint8_t, uint8_t, double, double, double, double) const;
 
     bool isJointInsideWorkspace(uint8_t) const;
 };

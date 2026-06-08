@@ -15,18 +15,8 @@ public:
 };
 
 constexpr double PI = 3.1415926535897932384626433832795;
-constexpr double DEG_TO_RAD_FACTOR = PI / 180.0;
-constexpr double RAD_TO_DEG_FACTOR = 180.0 / PI;
 
 constexpr double MIN_VAL = 1e-24;
-
-inline double deg2rad(double degrees) {
-    return degrees * DEG_TO_RAD_FACTOR;
-}
-
-inline double rad2deg(double radians) {
-    return radians * RAD_TO_DEG_FACTOR;
-}
 
 // Конструктор
 Diagram::Diagram(Scanner* scanner) : sc(scanner), curTok(LexemType::EMPTY), curLex(), currentDeclType(DATA_TYPE::TYPE_INT) {
@@ -38,10 +28,10 @@ vector<pair<string, SemNode*>> Diagram::getAllCurrentVariables()
 {
     std::vector<std::pair<std::string, SemNode*>> result;
     result.reserve(currentVariables.size());
+
     for (const auto& [key, stack] : currentVariables)
-    {
         if (!stack.empty()) result.emplace_back(key, stack.top());
-    }
+
     return result;
 }
 
@@ -1459,6 +1449,15 @@ DATA_TYPE Diagram::Prim()
     case LexemType::KW_ARCCTG: return Arcctg();
     case LexemType::KW_ATAN2: return Atan2();
     case LexemType::KW_PI: return Pi();
+    case LexemType::KW_SEGMENT_AMOUNT: return SegmentAmount();
+    case LexemType::KW_SEGMENT_LENGTH: return SegmentLength();
+    case LexemType::KW_GET_X: return GetX();
+    case LexemType::KW_GET_Y: return GetY();
+    case LexemType::KW_GET_Z: return GetZ();
+    case LexemType::KW_HIT_X: return HitX();
+    case LexemType::KW_HIT_Y: return HitY();
+    case LexemType::KW_HIT_Z: return HitZ();
+    case LexemType::KW_WORKSPACE_SIZE: return WorkspaceSize();
     case LexemType::KW_DEG2RAD: return Deg2Rad();
     case LexemType::KW_RAD2DEG: return Rad2Deg();
     case LexemType::KW_COMPARE_DOUBLE: return CompareDouble();
@@ -1628,6 +1627,362 @@ DATA_TYPE Diagram::Pi()
     return DATA_TYPE::TYPE_DOUBLE;
 }
 
+DATA_TYPE Diagram::SegmentAmount()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function segment_amount");
+
+    SemNode node;
+    node.DataType = DATA_TYPE::TYPE_SHORT_INT;
+    node.hasValue = true;
+    node.Value.v_int16 = RobotData::segmentAmount;
+    pushValue(node);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_SHORT_INT;
+}
+
+DATA_TYPE Diagram::WorkspaceSize()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function segment_amount");
+
+    SemNode node;
+    node.DataType = DATA_TYPE::TYPE_DOUBLE;
+    node.hasValue = true;
+    node.Value.v_double = RobotData::workspaceSize;
+    pushValue(node);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// длина указанного сегмента
+// SegmentLength -> 'segment_length' '(' Expr ')'
+DATA_TYPE Diagram::SegmentLength()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function segment_length");
+
+    DATA_TYPE dt = Expr();
+    if (!(dt == DATA_TYPE::TYPE_SHORT_INT || dt == DATA_TYPE::TYPE_INT || dt == DATA_TYPE::TYPE_LONG_INT))
+        semError("Segment index must be of an integer type");
+
+    SemNode idxNode = popValue();
+    int64_t segmentIdx;
+
+    switch (dt)
+    {
+    case DATA_TYPE::TYPE_SHORT_INT: segmentIdx = idxNode.Value.v_int16; break;
+    case DATA_TYPE::TYPE_INT: segmentIdx = idxNode.Value.v_int32; break;
+    case DATA_TYPE::TYPE_LONG_INT: segmentIdx = idxNode.Value.v_int64; break;
+    default: interpError("Internal error in segment_length built-in function");
+    }
+
+    if (segmentIdx < 0 || segmentIdx >= RobotData::segmentAmount)
+        interpError(tr("Segment index %1 is out of range [0; %2]")
+                        .arg(segmentIdx)
+                        .arg(RobotData::segmentAmount - 1)
+                        .toStdString());
+
+    SemNode resultNode;
+    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
+    resultNode.hasValue = true;
+    resultNode.Value.v_double = RobotData::segmentLengths[segmentIdx];
+    pushValue(resultNode);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Координата X указанного шарнира
+// GetX -> 'get_x' '(' Expr ')'
+DATA_TYPE Diagram::GetX()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function get_x");
+
+    DATA_TYPE dt = Expr();
+    if (!(dt == DATA_TYPE::TYPE_SHORT_INT || dt == DATA_TYPE::TYPE_INT || dt == DATA_TYPE::TYPE_LONG_INT))
+        semError("Joint index must be of an integer type");
+
+    SemNode idxNode = popValue();
+    int64_t jointIdx;
+
+    switch (dt)
+    {
+    case DATA_TYPE::TYPE_SHORT_INT: jointIdx = idxNode.Value.v_int16; break;
+    case DATA_TYPE::TYPE_INT: jointIdx = idxNode.Value.v_int32; break;
+    case DATA_TYPE::TYPE_LONG_INT: jointIdx = idxNode.Value.v_int64; break;
+    default: interpError("Internal error in get_x built-in function");
+    }
+
+    if (jointIdx < 0 || jointIdx > RobotData::segmentAmount)
+        interpError(tr("Joint index %1 is out of range [0; %2]")
+                        .arg(jointIdx)
+                        .arg(RobotData::segmentAmount)
+                        .toStdString());
+
+    auto& rd = RobotData::getInstance();
+    double x = rd.getX(static_cast<uint8_t>(jointIdx));
+
+    SemNode resultNode;
+    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
+    resultNode.hasValue = true;
+    resultNode.Value.v_double = x;
+    pushValue(resultNode);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Координата Y указанного шарнира
+// GetY -> 'get_y' '(' Expr ')'
+DATA_TYPE Diagram::GetY()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function get_y");
+
+    DATA_TYPE dt = Expr();
+    if (!(dt == DATA_TYPE::TYPE_SHORT_INT || dt == DATA_TYPE::TYPE_INT || dt == DATA_TYPE::TYPE_LONG_INT))
+        semError("Joint index must be of an integer type");
+
+    SemNode idxNode = popValue();
+    int64_t jointIdx;
+
+    switch (dt)
+    {
+    case DATA_TYPE::TYPE_SHORT_INT: jointIdx = idxNode.Value.v_int16; break;
+    case DATA_TYPE::TYPE_INT: jointIdx = idxNode.Value.v_int32; break;
+    case DATA_TYPE::TYPE_LONG_INT: jointIdx = idxNode.Value.v_int64; break;
+    default: interpError("Internal error in get_y built-in function");
+    }
+
+    if (jointIdx < 0 || jointIdx > RobotData::segmentAmount)
+        interpError(tr("Joint index %1 is out of range [0; %2]")
+                        .arg(jointIdx)
+                        .arg(RobotData::segmentAmount)
+                        .toStdString());
+
+    auto& rd = RobotData::getInstance();
+    double y = rd.getY(static_cast<uint8_t>(jointIdx));
+
+    SemNode resultNode;
+    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
+    resultNode.hasValue = true;
+    resultNode.Value.v_double = y;
+    pushValue(resultNode);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Координата Z указанного шарнира
+// GetZ -> 'get_z' '(' Expr ')'
+DATA_TYPE Diagram::GetZ()
+{
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError("Expected '(' after built-in function get_z");
+
+    DATA_TYPE dt = Expr();
+    if (!(dt == DATA_TYPE::TYPE_SHORT_INT || dt == DATA_TYPE::TYPE_INT || dt == DATA_TYPE::TYPE_LONG_INT))
+        semError("Joint index must be of an integer type");
+
+    SemNode idxNode = popValue();
+    int64_t jointIdx;
+
+    switch (dt)
+    {
+    case DATA_TYPE::TYPE_SHORT_INT: jointIdx = idxNode.Value.v_int16; break;
+    case DATA_TYPE::TYPE_INT: jointIdx = idxNode.Value.v_int32; break;
+    case DATA_TYPE::TYPE_LONG_INT: jointIdx = idxNode.Value.v_int64; break;
+    default: interpError("Internal error in get_z built-in function");
+    }
+
+    if (jointIdx < 0 || jointIdx > RobotData::segmentAmount)
+        interpError(tr("Joint index %1 is out of range [0; %2]")
+                        .arg(jointIdx)
+                        .arg(RobotData::segmentAmount)
+                        .toStdString());
+
+    auto& rd = RobotData::getInstance();
+    double z = rd.getZ(static_cast<uint8_t>(jointIdx));
+
+    SemNode resultNode;
+    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
+    resultNode.hasValue = true;
+    resultNode.Value.v_double = z;
+    pushValue(resultNode);
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError("expected ')' after expression");
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
+DATA_TYPE Diagram::HitX()
+{
+    return Hit(HitCoordinateType::X);
+}
+
+DATA_TYPE Diagram::HitY()
+{
+    return Hit(HitCoordinateType::Y);
+}
+
+DATA_TYPE Diagram::HitZ()
+{
+    return Hit(HitCoordinateType::Z);
+}
+
+DATA_TYPE Diagram::Hit(HitCoordinateType type)
+{
+    auto funcName = (type == HitCoordinateType::X ? "hitx" : type == HitCoordinateType::Y ? "hity" : "hitz");
+
+    LexemType t = nextToken();
+    if (t != LexemType::LPAREN)
+        synError(tr("Expected '(' after built-in function %1").arg(funcName).toStdString());
+
+    // Argument 1: pointIdx (joint index of the point being rotated)
+    DATA_TYPE dt1 = Expr();
+    if (!(dt1 == DATA_TYPE::TYPE_SHORT_INT))
+        semError(tr("First argument of %1 must be of type short").arg(funcName).toStdString());
+    SemNode pointIdxNode = popValue();
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError(tr("Expected ',' after first argument in %1").arg(funcName).toStdString());
+
+    // Argument 2: rotatedJointIdx (joint index that rotates, must be larger than pointIdx)
+    DATA_TYPE dt2 = Expr();
+    if (!(dt2 == DATA_TYPE::TYPE_SHORT_INT))
+        semError(tr("Second argument of %1 must be of type short").arg(funcName).toStdString());
+    SemNode rotatedIdxNode = popValue();
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError(tr("Expected ',' after second argument in %1").arg(funcName).toStdString());
+
+    // Argument 3: normalX
+    DATA_TYPE dt3 = Expr();
+    if (dt3 != DATA_TYPE::TYPE_DOUBLE)
+        semError(tr("Third argument of %1 must be of type double").arg(funcName).toStdString());
+    SemNode normalXNode = popValue();
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError(tr("Expected ',' after third argument in %1").arg(funcName).toStdString());
+
+    // Argument 4: normalY
+    DATA_TYPE dt4 = Expr();
+    if (dt4 != DATA_TYPE::TYPE_DOUBLE)
+        semError(tr("Fourth argument of %1 must be of type double").arg(funcName).toStdString());
+    SemNode normalYNode = popValue();
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError(tr("Expected ',' after fourth argument in %1").arg(funcName).toStdString());
+
+    // Argument 5: normalZ
+    DATA_TYPE dt5 = Expr();
+    if (dt5 != DATA_TYPE::TYPE_DOUBLE)
+        semError(tr("Fifth argument of %1 must be of type double").arg(funcName).toStdString());
+    SemNode normalZNode = popValue();
+
+    t = nextToken();
+    if (t != LexemType::COMMA)
+        synError(tr("Expected ',' after fifth argument in %1").arg(funcName).toStdString());
+
+    // Argument 6: radians
+    DATA_TYPE dt6 = Expr();
+    if (dt6 != DATA_TYPE::TYPE_DOUBLE)
+        semError(tr("Sixth argument of %1 must be of type double").arg(funcName).toStdString());
+    SemNode radiansNode = popValue();
+
+    t = nextToken();
+    if (t != LexemType::RPAREN)
+        synError(tr("Expected ')' after expression in %1").arg(funcName).toStdString());
+
+    int64_t pointIdx = pointIdxNode.Value.v_int16;
+    int64_t rotatedIdx = rotatedIdxNode.Value.v_int16;
+
+    double normalX = normalXNode.Value.v_double;
+    double normalY = normalYNode.Value.v_double;
+    double normalZ = normalZNode.Value.v_double;
+    double radians = radiansNode.Value.v_double;
+
+    // Validate indices
+    auto& rd = RobotData::getInstance();
+
+    if (pointIdx < 0 || pointIdx >= RobotData::segmentAmount)
+        interpError(tr("Point index %1 is out of range [0; %2] in %3")
+                        .arg(pointIdx)
+                        .arg(RobotData::segmentAmount - 1)
+                        .arg(funcName)
+                        .toStdString());
+
+    if (rotatedIdx < 0 || rotatedIdx > RobotData::segmentAmount || rotatedIdx <= pointIdx)
+        interpError(tr("Rotated joint index %1 is out of range [%2; %3] in %4")
+                        .arg(rotatedIdx)
+                        .arg(pointIdx + 1)
+                        .arg(RobotData::segmentAmount)
+                        .arg(funcName)
+                        .toStdString());
+
+    Point pivotPoint = {
+        rd.getX(static_cast<uint8_t>(pointIdx)),
+        rd.getY(static_cast<uint8_t>(pointIdx)),
+        rd.getZ(static_cast<uint8_t>(pointIdx))
+    };
+
+    Point initialPoint = {
+        rd.getX(static_cast<uint8_t>(rotatedIdx)),
+        rd.getY(static_cast<uint8_t>(rotatedIdx)),
+        rd.getZ(static_cast<uint8_t>(rotatedIdx))
+    };
+
+    auto hitpoint = rd.getFirstWorkspaceHitCoord(
+        pointIdx,
+        rotatedIdx,
+        normalX, normalY, normalZ,
+        radians
+        );
+
+    uint8_t index = (type == HitCoordinateType::X ? 0 : type == HitCoordinateType::Y ? 1 : 2);
+
+    double result = (hitpoint.has_value() ? (*hitpoint)[index] : std::numeric_limits<double>::quiet_NaN());
+
+    SemNode resultNode;
+    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
+    resultNode.hasValue = true;
+    resultNode.Value.v_double = result;
+    pushValue(resultNode);
+
+    return DATA_TYPE::TYPE_DOUBLE;
+}
+
 // Sin -> 'sin' '(' Expr ')'
 DATA_TYPE Diagram::Sin()
 {
@@ -1639,7 +1994,7 @@ DATA_TYPE Diagram::Sin()
 
     // pop the angle value in radians from the stack, apply sin, push back onto the stack
     SemNode v = popValue();
-    v.Value.v_double = sin(v.Value.v_double);
+    v.Value.v_double = std::sin(v.Value.v_double);
     pushValue(v);
 
     t = nextToken();
@@ -1659,7 +2014,7 @@ DATA_TYPE Diagram::Cos()
 
     // pop the angle value in radians from the stack, apply cos, push back onto the stack
     SemNode v = popValue();
-    v.Value.v_double = cos(v.Value.v_double);
+    v.Value.v_double = std::cos(v.Value.v_double);
     pushValue(v);
 
     t = nextToken();
@@ -1885,7 +2240,7 @@ DATA_TYPE Diagram::Deg2Rad()
 
     // pop the angle value in degrees from the stack, apply deg2rad, push the angle value in radians back onto the stack
     SemNode v = popValue();
-    v.Value.v_double = deg2rad(v.Value.v_double);
+    v.Value.v_double *= (PI / 180.0);
     pushValue(v);
 
     t = nextToken();
@@ -1905,7 +2260,7 @@ DATA_TYPE Diagram::Rad2Deg()
 
     // pop the angle value in radians from the stack, apply rad2deg, push the angle value in degrees back onto the stack
     SemNode v = popValue();
-    v.Value.v_double = rad2deg(v.Value.v_double);
+    v.Value.v_double /= (PI / 180.0);
     pushValue(v);
 
     t = nextToken();
@@ -1939,12 +2294,8 @@ DATA_TYPE Diagram::CompareDouble()
         synError("Expected ',' after second argument in compare_double");
 
     DATA_TYPE dt3 = Expr();
-    if (!(
-            dt3 == DATA_TYPE::TYPE_SHORT_INT ||
-            dt3 == DATA_TYPE::TYPE_INT ||
-            dt3 == DATA_TYPE::TYPE_LONG_INT)
-        )
-        semError("Third argument of compare_double must be an integer (number of decimal places)");
+    if (!(dt3 == DATA_TYPE::TYPE_SHORT_INT || dt3 == DATA_TYPE::TYPE_INT || dt3 == DATA_TYPE::TYPE_LONG_INT))
+        semError("Third argument of compare_double must be of an integer type (number of decimal places)");
 
     SemNode decimalNode = popValue();
     SemNode rhsNode = popValue();
@@ -2170,12 +2521,13 @@ void Diagram::executeMove(
     int l, c;
     tie(l, c) = sc->getLineCol();
 
+    checkJointsInsideWorkspace();
     waitForButtonPress(QString("[%1:%2] Move(%3, %4) executed")
                            .arg(l)
                            .arg(c)
                            .arg(x_offset.Value.v_double)
                            .arg(y_offset.Value.v_double));
-    checkJointsInsideWorkspace();
+
 }
 
 void Diagram::executeRotate(
