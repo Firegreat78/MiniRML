@@ -47,27 +47,15 @@ void MainWindow::setupUi()
     enterShortcutNextStepButton->setEnabled(false);
     ui->nextStepButton->setVisible(false);
 
-    ui->updateSegmentAmountAction->setText(QString("Указать количество сегментов робота (текущее количество = %1)")
+    ui->updateSegmentAmountAction->setText(tr("Указать количество сегментов робота (текущее количество = %1)")
         .arg(RobotData::segmentAmount));
 
     ui->workspaceSizeAction->setText(
-        QString("Размер рабочей области = %1")
+        tr("Размер рабочей области = %1")
             .arg(RobotData::workspaceSize)
         );
 
     connect(ui->workspaceSizeAction, &QAction::triggered, this, &MainWindow::onUpdateWorkspaceSize);
-
-    for (auto it = updateSegmentLengthsActions.begin();
-         it != updateSegmentLengthsActions.end();
-         it++)
-    {
-        qsizetype i = it - updateSegmentLengthsActions.begin();
-        (*it)->setText(tr("Длина сегмента #%1 = %2")
-                           .arg(i+1)
-                           .arg(RobotData::segmentLengths[i])
-                       );
-        (*it)->setVisible(i < RobotData::segmentAmount);
-    }
 
     ui->projectionWidgetLabel->hide();
 
