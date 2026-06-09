@@ -72,7 +72,7 @@ private slots:
     void onChangeJointSizeRequested();
 
 public slots:
-    void onVariablesReceived(std::vector<std::pair<std::string, SemNode*>> const&);
+    void onVariablesReceived(std::map<std::string, std::stack<SemNode*>>const *const);
     void onRobotDataShouldUpdate();
     void onRecvCurrentStepMsg(QString const&);
 protected:

@@ -39,7 +39,7 @@ private:
 
     // текущие переменные
     std::map<std::string, std::stack<SemNode*>> currentVariables;
-    std::vector<std::pair<std::string, SemNode*>> getAllCurrentVariables();
+    std::map<std::string, std::stack<SemNode*>>const *const getAllCurrentVariables() const;
 
     // переменные-параметры функций
     std::stack<int> funcParamAmountStack;
@@ -337,7 +337,7 @@ private:
 
 signals:
     // для передачи всех текущих значений переменных (с учётом name shadowing)
-    void sendAllCurrentVariables(std::vector<std::pair<std::string, SemNode*>>);
+    void sendAllCurrentVariables(std::map<std::string, std::stack<SemNode*>>const *const);
 
     // для передачи координат шарниров робота
     void sendRobotData();

@@ -24,15 +24,10 @@ Diagram::Diagram(Scanner* scanner) : sc(scanner), curTok(LexemType::EMPTY), curL
     pushLex.clear();
 }
 
-vector<pair<string, SemNode*>> Diagram::getAllCurrentVariables()
+std::map<std::string, std::stack<SemNode*>>const *const Diagram::getAllCurrentVariables() const
 {
-    std::vector<std::pair<std::string, SemNode*>> result;
-    result.reserve(currentVariables.size());
 
-    for (const auto& [key, stack] : currentVariables)
-        if (!stack.empty()) result.emplace_back(key, stack.top());
-
-    return result;
+    return &currentVariables;
 }
 
 void Diagram::synError(const string& msg)

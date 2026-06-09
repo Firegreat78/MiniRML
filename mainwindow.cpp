@@ -201,7 +201,7 @@ void MainWindow::onUpdateSegmentAmount()
         (*it)->setVisible(i < segments);
     }
 }
-void MainWindow::onVariablesReceived(vector<pair<string, SemNode*>> const& variables)
+void MainWindow::onVariablesReceived(std::map<std::string, std::stack<SemNode*>>const *const variables)
 {
     ui->variablesListWidget->clear();
 
@@ -227,32 +227,34 @@ void MainWindow::onVariablesReceived(vector<pair<string, SemNode*>> const& varia
         .arg(value);
     };
 
-    for (auto const& var : variables)
+    for (const auto& [key, stack] : *variables)
     {
-        SemNode* node = var.second;
+        if (stack.empty()) continue;
+
+        SemNode* node = stack.top();
         if (!node->isInitialized)
         {
             ui->variablesListWidget->addItem(
-                QString("[%1:%2] %3 %4 = [неинициализирована]")
+                tr("[%1:%2] %3 %4 = [неинициализирована]")
                     .arg(node->line)
                     .arg(node->col)
                     .arg(typeToString(node->DataType))
-                    .arg(QString::fromStdString(var.first)));
+                    .arg(QString::fromStdString(key)));
             continue;
         }
 
         switch (node->DataType)
         {
         case DATA_TYPE::TYPE_SHORT_INT:
-            ui->variablesListWidget->addItem(formatVar(var.first, node, node->Value.v_int16)); break;
+            ui->variablesListWidget->addItem(formatVar(key, node, node->Value.v_int16)); break;
         case DATA_TYPE::TYPE_INT:
-            ui->variablesListWidget->addItem(formatVar(var.first, node, node->Value.v_int32)); break;
+            ui->variablesListWidget->addItem(formatVar(key, node, node->Value.v_int32)); break;
         case DATA_TYPE::TYPE_LONG_INT:
-            ui->variablesListWidget->addItem(formatVar(var.first, node, node->Value.v_int64)); break;
+            ui->variablesListWidget->addItem(formatVar(key, node, node->Value.v_int64)); break;
         case DATA_TYPE::TYPE_DOUBLE:
-            ui->variablesListWidget->addItem(formatVar(var.first, node, node->Value.v_double)); break;
+            ui->variablesListWidget->addItem(formatVar(key, node, node->Value.v_double)); break;
         case DATA_TYPE::TYPE_BOOL:
-            ui->variablesListWidget->addItem(formatVar(var.first, node, node->Value.v_bool)); break;
+            ui->variablesListWidget->addItem(formatVar(key, node, node->Value.v_bool)); break;
         default: break;
         }
     }
