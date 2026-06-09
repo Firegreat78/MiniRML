@@ -32,6 +32,7 @@ void MainWindow::setupUi()
         connect(segmentLenAction, &QAction::triggered, this, &MainWindow::onUpdateSegmentLength);
 
         ui->menuMain->addAction(segmentLenAction);
+        segmentLenAction->setVisible(i < RobotData::segmentAmount);
         *it = std::move(segmentLenAction);
     }
 
