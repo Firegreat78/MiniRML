@@ -24,9 +24,8 @@ Diagram::Diagram(Scanner* scanner) : sc(scanner), curTok(LexemType::EMPTY), curL
     pushLex.clear();
 }
 
-std::map<std::string, std::stack<SemNode*>>const *const Diagram::getAllCurrentVariables() const
+std::map<std::size_t, std::stack<SemNode*>>const *const Diagram::getAllCurrentVariables() const
 {
-
     return &currentVariables;
 }
 
@@ -466,8 +465,8 @@ void Diagram::IdInit() {
 
     if (!Tree::isInterpretationEnabled()) return;
 
-    currentVariables[varName].push(varNode->n);
-    scopeAddedVariablesStack.push(varName);
+    currentVariables[varNode->n->line].push(varNode->n);
+    scopeAddedVariablesStack.push(varNode->n->line);
     scopeInitializedVarsAmountStack.top()++;
 
     auto formatVar = [&](const auto& value, const QString& typeStr) {
@@ -546,8 +545,8 @@ void Diagram::Block()
     {
         for (int i = 0; i < scopeInitializedVarsAmountStack.top(); i++)
         {
-            std::string const& varName = scopeAddedVariablesStack.top();
-            currentVariables[varName].pop();
+            auto const& key = scopeAddedVariablesStack.top();
+            currentVariables[key].pop();
             scopeAddedVariablesStack.pop();
         }
         scopeInitializedVarsAmountStack.pop();
@@ -973,8 +972,8 @@ void Diagram::Call()
         }
 
         // save fresh semantic nodes to currentVariables
-        currentVariables[copyP->n->id].push(copyP->n);
-        funcAddedVariablesStack.push(copyP->n->id);
+        currentVariables[copyP->n->line].push(copyP->n);
+        funcAddedVariablesStack.push(copyP->n->line);
         funcParamAmountStack.top()++;
 
         QString s;
@@ -1030,8 +1029,8 @@ void Diagram::Call()
     // remove func params from current variables
     for (int i = 0; i < funcParamAmountStack.top(); i++)
     {
-        string const& varName = funcAddedVariablesStack.top();
-        currentVariables[varName].pop();
+        auto const& key = funcAddedVariablesStack.top();
+        currentVariables[key].pop();
     }
     funcParamAmountStack.pop();
 

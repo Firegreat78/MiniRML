@@ -38,16 +38,16 @@ private:
     std::stack<SemNode> evalStack;
 
     // текущие переменные
-    std::map<std::string, std::stack<SemNode*>> currentVariables;
-    std::map<std::string, std::stack<SemNode*>>const *const getAllCurrentVariables() const;
+    std::map<std::size_t, std::stack<SemNode*>> currentVariables;
+    std::map<std::size_t, std::stack<SemNode*>>const *const getAllCurrentVariables() const;
 
     // переменные-параметры функций
     std::stack<int> funcParamAmountStack;
-    std::stack<std::string> funcAddedVariablesStack;
+    std::stack<decltype(currentVariables)::key_type> funcAddedVariablesStack;
 
     // переменные декларированные в scope
     std::stack<int> scopeInitializedVarsAmountStack;
-    std::stack<std::string> scopeAddedVariablesStack;
+    std::stack<decltype(currentVariables)::key_type> scopeAddedVariablesStack;
 
     // Для пошагового выполнения в отдельном потоке
     QMutex stepMutex;
@@ -337,7 +337,7 @@ private:
 
 signals:
     // для передачи всех текущих значений переменных (с учётом name shadowing)
-    void sendAllCurrentVariables(std::map<std::string, std::stack<SemNode*>>const *const);
+    void sendAllCurrentVariables(std::map<std::size_t, std::stack<SemNode*>>const *const);
 
     // для передачи координат шарниров робота
     void sendRobotData();
