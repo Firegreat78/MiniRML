@@ -465,8 +465,9 @@ void Diagram::IdInit() {
 
     if (!Tree::isInterpretationEnabled()) return;
 
-    currentVariables[varNode->n->line].push(varNode->n);
-    scopeAddedVariablesStack.push(varNode->n->line);
+    size_t const key = (static_cast<size_t>(varNode->n->line) << BITS_SHIFT_CURVAR_KEY) + varNode->n->col;
+    currentVariables[key].push(varNode->n);
+    scopeAddedVariablesStack.push(key);
     scopeInitializedVarsAmountStack.top()++;
 
     auto formatVar = [&](const auto& value, const QString& typeStr) {
@@ -972,7 +973,8 @@ void Diagram::Call()
         }
 
         // save fresh semantic nodes to currentVariables
-        currentVariables[copyP->n->line].push(copyP->n);
+        size_t const key = (static_cast<size_t>(copyP->n->line) << BITS_SHIFT_CURVAR_KEY) + copyP->n->col;
+        currentVariables[key].push(copyP->n);
         funcAddedVariablesStack.push(copyP->n->line);
         funcParamAmountStack.top()++;
 

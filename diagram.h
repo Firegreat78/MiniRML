@@ -38,6 +38,7 @@ private:
     std::stack<SemNode> evalStack;
 
     // текущие переменные
+    static constexpr uint8_t BITS_SHIFT_CURVAR_KEY = 31;
     std::map<std::size_t, std::stack<SemNode*>> currentVariables;
     std::map<std::size_t, std::stack<SemNode*>>const *const getAllCurrentVariables() const;
 
