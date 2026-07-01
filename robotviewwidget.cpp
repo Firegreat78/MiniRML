@@ -27,7 +27,7 @@ RobotViewWidget::RobotViewWidget(
     QWidget* parent
     )
     : QWidget(parent),
-    currentPlane(ViewPlane::YOZ),
+    currentPlane(ViewPlane::XOY),
     widgetSize(sideSize),
     maxCoord(maxCoordAbs)
 {

@@ -1,3 +1,4 @@
+// robotviewwidget.h
 #ifndef ROBOTVIEWWIDGET_H
 #define ROBOTVIEWWIDGET_H
 

@@ -1,3 +1,4 @@
+// lexemtype.h
 #ifndef LEXEMTYPE_H
 #define LEXEMTYPE_H
 
@@ -58,7 +59,6 @@ enum class LexemType
     // Литералы
     DEC_LITERAL, // обычная десятичная (0, 4, 540, ...)
     HEX_LITERAL, // 0x...
-    BOOL_LITERAL, // true, false
     DOUBLE_LITERAL, // 1e4, 1e+4, 1e-4, 0.4
 
     // Разделители

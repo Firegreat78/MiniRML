@@ -22,7 +22,7 @@ class Diagram : public QObject
 
 private:
 
-    enum class HitCoordinateType : uint8_t
+    enum class CoordinateType : uint8_t
     {
         X, Y, Z
     };
@@ -193,14 +193,11 @@ private:
     //       | SegmentAmount
     //       | SegmentLength
     //       | WorkspaceSize
-    //       | GetX
-    //       | GetY
-    //       | GetZ
-    //       | HitX
-    //       | HitY
-    //       | HitZ
+    //       | Get
+    //       | Hit
     //       | Deg2Rad
     //       | Rad2Deg
+    //       | CompareDouble
     DATA_TYPE Prim();
     /* [Выражения] */
 
@@ -221,21 +218,25 @@ private:
     // WorkspaceSize -> 'workspace_size' '(' ')'
     DATA_TYPE WorkspaceSize();
 
+    // Координата X|Y|Z указанного шарнира
+    // Get -> GetX | GetY | GetZ
+    DATA_TYPE Get(CoordinateType);
+
     // Координата X указанного шарнира
-    // GetX -> 'get_x' '(' Expr ')'
+    // GetX -> 'getx' '(' Expr ')'
     DATA_TYPE GetX();
 
     // Координата Y указанного шарнира
-    // GetY -> 'get_y' '(' Expr ')'
+    // GetY -> 'gety' '(' Expr ')'
     DATA_TYPE GetY();
 
     // Координата Z указанного шарнира
-    // GetZ -> 'get_z' '(' Expr ')'
+    // GetZ -> 'getz' '(' Expr ')'
     DATA_TYPE GetZ();
 
     // получить координату X|Y|Z первого удара о стенку рабочей области при вращении с заданными характеристиками
     // Hit -> HitX | HitY | HitZ
-    DATA_TYPE Hit(HitCoordinateType);
+    DATA_TYPE Hit(CoordinateType);
 
     // получить координату X первого удара о стенку рабочей области при вращении с заданными характеристиками
     // HitX -> 'hitx' '(' Expr ',' Expr ',' Expr ',' Expr ',' Expr ',' Expr ')'

@@ -1,3 +1,4 @@
+// diagram.cpp
 #include "Diagram.h"
 #include "tree.h"
 #include <iostream>
@@ -1703,16 +1704,23 @@ DATA_TYPE Diagram::SegmentLength()
     return DATA_TYPE::TYPE_DOUBLE;
 }
 
-// Координата X указанного шарнира
-// GetX -> 'get_x' '(' Expr ')'
-DATA_TYPE Diagram::GetX()
+// Get ->
+DATA_TYPE Diagram::Get(CoordinateType type)
 {
+    auto funcName = (
+        type == CoordinateType::X ? "getx" :
+        type == CoordinateType::Y ? "gety" :
+                                    "getz"
+    );
     LexemType t = nextToken();
     if (t != LexemType::LPAREN)
-        synError("Expected '(' after built-in function get_x");
+        synError(tr("Expected '(' after built-in function %1").arg(funcName).toStdString());
 
     DATA_TYPE dt = Expr();
-    if (!(dt == DATA_TYPE::TYPE_SHORT_INT || dt == DATA_TYPE::TYPE_INT || dt == DATA_TYPE::TYPE_LONG_INT))
+    if (!(
+            dt == DATA_TYPE::TYPE_SHORT_INT ||
+            dt == DATA_TYPE::TYPE_INT ||
+            dt == DATA_TYPE::TYPE_LONG_INT))
         semError("Joint index must be of an integer type");
 
     SemNode idxNode = popValue();
@@ -1723,7 +1731,7 @@ DATA_TYPE Diagram::GetX()
     case DATA_TYPE::TYPE_SHORT_INT: jointIdx = idxNode.Value.v_int16; break;
     case DATA_TYPE::TYPE_INT: jointIdx = idxNode.Value.v_int32; break;
     case DATA_TYPE::TYPE_LONG_INT: jointIdx = idxNode.Value.v_int64; break;
-    default: interpError("Internal error in get_x built-in function");
+    default: interpError(tr("Internal error in %1 built-in function").arg(funcName).toStdString());
     }
 
     if (jointIdx < 0 || jointIdx > RobotData::segmentAmount)
@@ -1733,12 +1741,16 @@ DATA_TYPE Diagram::GetX()
                         .toStdString());
 
     auto& rd = RobotData::getInstance();
-    double x = rd.getX(static_cast<uint8_t>(jointIdx));
+    double const coord = (
+        type == CoordinateType::X ? rd.getX(static_cast<uint8_t>(jointIdx)) :
+        type == CoordinateType::Y ? rd.getY(static_cast<uint8_t>(jointIdx)) :
+                                    rd.getZ(static_cast<uint8_t>(jointIdx))
+    );
 
     SemNode resultNode;
     resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
     resultNode.hasValue = true;
-    resultNode.Value.v_double = x;
+    resultNode.Value.v_double = coord;
     pushValue(resultNode);
 
     t = nextToken();
@@ -1746,116 +1758,47 @@ DATA_TYPE Diagram::GetX()
         synError("expected ')' after expression");
 
     return DATA_TYPE::TYPE_DOUBLE;
+}
+
+// Координата X указанного шарнира
+// GetX -> 'getx' '(' Expr ')'
+DATA_TYPE Diagram::GetX()
+{
+    return Get(CoordinateType::X);
 }
 
 // Координата Y указанного шарнира
-// GetY -> 'get_y' '(' Expr ')'
+// GetY -> 'gety' '(' Expr ')'
 DATA_TYPE Diagram::GetY()
 {
-    LexemType t = nextToken();
-    if (t != LexemType::LPAREN)
-        synError("Expected '(' after built-in function get_y");
-
-    DATA_TYPE dt = Expr();
-    if (!(dt == DATA_TYPE::TYPE_SHORT_INT || dt == DATA_TYPE::TYPE_INT || dt == DATA_TYPE::TYPE_LONG_INT))
-        semError("Joint index must be of an integer type");
-
-    SemNode idxNode = popValue();
-    int64_t jointIdx;
-
-    switch (dt)
-    {
-    case DATA_TYPE::TYPE_SHORT_INT: jointIdx = idxNode.Value.v_int16; break;
-    case DATA_TYPE::TYPE_INT: jointIdx = idxNode.Value.v_int32; break;
-    case DATA_TYPE::TYPE_LONG_INT: jointIdx = idxNode.Value.v_int64; break;
-    default: interpError("Internal error in get_y built-in function");
-    }
-
-    if (jointIdx < 0 || jointIdx > RobotData::segmentAmount)
-        interpError(tr("Joint index %1 is out of range [0; %2]")
-                        .arg(jointIdx)
-                        .arg(RobotData::segmentAmount)
-                        .toStdString());
-
-    auto& rd = RobotData::getInstance();
-    double y = rd.getY(static_cast<uint8_t>(jointIdx));
-
-    SemNode resultNode;
-    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
-    resultNode.hasValue = true;
-    resultNode.Value.v_double = y;
-    pushValue(resultNode);
-
-    t = nextToken();
-    if (t != LexemType::RPAREN)
-        synError("expected ')' after expression");
-
-    return DATA_TYPE::TYPE_DOUBLE;
+    return Get(CoordinateType::Y);
 }
 
 // Координата Z указанного шарнира
-// GetZ -> 'get_z' '(' Expr ')'
+// GetZ -> 'getz' '(' Expr ')'
 DATA_TYPE Diagram::GetZ()
 {
-    LexemType t = nextToken();
-    if (t != LexemType::LPAREN)
-        synError("Expected '(' after built-in function get_z");
-
-    DATA_TYPE dt = Expr();
-    if (!(dt == DATA_TYPE::TYPE_SHORT_INT || dt == DATA_TYPE::TYPE_INT || dt == DATA_TYPE::TYPE_LONG_INT))
-        semError("Joint index must be of an integer type");
-
-    SemNode idxNode = popValue();
-    int64_t jointIdx;
-
-    switch (dt)
-    {
-    case DATA_TYPE::TYPE_SHORT_INT: jointIdx = idxNode.Value.v_int16; break;
-    case DATA_TYPE::TYPE_INT: jointIdx = idxNode.Value.v_int32; break;
-    case DATA_TYPE::TYPE_LONG_INT: jointIdx = idxNode.Value.v_int64; break;
-    default: interpError("Internal error in get_z built-in function");
-    }
-
-    if (jointIdx < 0 || jointIdx > RobotData::segmentAmount)
-        interpError(tr("Joint index %1 is out of range [0; %2]")
-                        .arg(jointIdx)
-                        .arg(RobotData::segmentAmount)
-                        .toStdString());
-
-    auto& rd = RobotData::getInstance();
-    double z = rd.getZ(static_cast<uint8_t>(jointIdx));
-
-    SemNode resultNode;
-    resultNode.DataType = DATA_TYPE::TYPE_DOUBLE;
-    resultNode.hasValue = true;
-    resultNode.Value.v_double = z;
-    pushValue(resultNode);
-
-    t = nextToken();
-    if (t != LexemType::RPAREN)
-        synError("expected ')' after expression");
-
-    return DATA_TYPE::TYPE_DOUBLE;
+    return Get(CoordinateType::Y);
 }
 
 DATA_TYPE Diagram::HitX()
 {
-    return Hit(HitCoordinateType::X);
+    return Hit(CoordinateType::X);
 }
 
 DATA_TYPE Diagram::HitY()
 {
-    return Hit(HitCoordinateType::Y);
+    return Hit(CoordinateType::Y);
 }
 
 DATA_TYPE Diagram::HitZ()
 {
-    return Hit(HitCoordinateType::Z);
+    return Hit(CoordinateType::Z);
 }
 
-DATA_TYPE Diagram::Hit(HitCoordinateType type)
+DATA_TYPE Diagram::Hit(CoordinateType type)
 {
-    auto funcName = (type == HitCoordinateType::X ? "hitx" : type == HitCoordinateType::Y ? "hity" : "hitz");
+    auto funcName = (type == CoordinateType::X ? "hitx" : type == CoordinateType::Y ? "hity" : "hitz");
 
     LexemType t = nextToken();
     if (t != LexemType::LPAREN)
@@ -1947,18 +1890,6 @@ DATA_TYPE Diagram::Hit(HitCoordinateType type)
                         .arg(funcName)
                         .toStdString());
 
-    Point pivotPoint = {
-        rd.getX(static_cast<uint8_t>(pointIdx)),
-        rd.getY(static_cast<uint8_t>(pointIdx)),
-        rd.getZ(static_cast<uint8_t>(pointIdx))
-    };
-
-    Point initialPoint = {
-        rd.getX(static_cast<uint8_t>(rotatedIdx)),
-        rd.getY(static_cast<uint8_t>(rotatedIdx)),
-        rd.getZ(static_cast<uint8_t>(rotatedIdx))
-    };
-
     auto hitpoint = rd.getFirstWorkspaceHitCoord(
         pointIdx,
         rotatedIdx,
@@ -1966,7 +1897,7 @@ DATA_TYPE Diagram::Hit(HitCoordinateType type)
         radians
         );
 
-    uint8_t index = (type == HitCoordinateType::X ? 0 : type == HitCoordinateType::Y ? 1 : 2);
+    uint8_t index = (type == CoordinateType::X ? 0 : type == CoordinateType::Y ? 1 : 2);
 
     double result = (hitpoint.has_value() ? (*hitpoint)[index] : std::numeric_limits<double>::quiet_NaN());
 

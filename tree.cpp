@@ -10,24 +10,6 @@
 
 using namespace std;
 
-// привести double к int64_t без undefined behaviour
-optional<int64_t> safe_double_to_int64(double d) noexcept
-{
-    try
-    {
-        if (isnan(d) || isinf(d)) return nullopt;
-
-        constexpr double MAX_INT64 = static_cast<double>(numeric_limits<int64_t>::max());
-        constexpr double MIN_INT64 = static_cast<double>(numeric_limits<int64_t>::min());
-
-        if (d >= MAX_INT64 || d <= MIN_INT64) return nullopt;
-
-        // Стандартное округление к ближайшему
-        return static_cast<int64_t>(std::llround(d));
-    }
-    catch (...) { return nullopt; }
-}
-
 // Инициализация статических полей
 Tree* Tree::Root = nullptr;
 Tree* Tree::Cur = nullptr;
@@ -248,7 +230,7 @@ Tree* Tree::semInclude(const string& a, DATA_TYPE t, int line, int col)
     }
 }
 
-// занесение константы со значением
+// занесение литерала со значением
 Tree* Tree::semIncludeConstant(const string& a, DATA_TYPE t, const string& value, int line, int col) {
     Tree* node = semInclude(a, t, line, col);
     if (node && node->n) {
@@ -305,7 +287,7 @@ void Tree::semControlParamTypes(Tree* Addr, const vector<DATA_TYPE>& argTypes, i
     }
     const vector<DATA_TYPE>& formal = Addr->n->ParamTypes;
     if (formal.size() != argTypes.size()) {
-        semError("invalid function param amount", Addr->n->id, line, col); // invalid function param amount
+        semError("invalid function param amount", Addr->n->id, line, col);
     }
     for (size_t i = 0; i < formal.size(); ++i) {
         bool formalIsInt = (formal[i] == DATA_TYPE::TYPE_INT || formal[i] == DATA_TYPE::TYPE_SHORT_INT || formal[i] == DATA_TYPE::TYPE_LONG_INT);

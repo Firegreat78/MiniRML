@@ -88,9 +88,9 @@ LexemType Scanner::checkKeyword(const string& s) {
     if (s == "pi") return LexemType::KW_PI;
     if (s == "segment_amount") return LexemType::KW_SEGMENT_AMOUNT;
     if (s == "segment_length") return LexemType::KW_SEGMENT_LENGTH;
-    if (s == "get_x") return LexemType::KW_GET_X;
-    if (s == "get_y") return LexemType::KW_GET_Y;
-    if (s == "get_z") return LexemType::KW_GET_Z;
+    if (s == "getx") return LexemType::KW_GET_X;
+    if (s == "gety") return LexemType::KW_GET_Y;
+    if (s == "getz") return LexemType::KW_GET_Z;
     if (s == "hitx") return LexemType::KW_HIT_X;
     if (s == "hity") return LexemType::KW_HIT_Y;
     if (s == "hitz") return LexemType::KW_HIT_Z;

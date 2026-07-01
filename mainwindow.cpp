@@ -230,7 +230,6 @@ void MainWindow::onVariablesReceived(std::map<std::size_t, std::stack<SemNode*>>
     for (const auto& [key, stack] : *variables)
     {
         if (stack.empty()) continue;
-
         SemNode* node = stack.top();
         if (!node->isInitialized)
         {
@@ -314,8 +313,10 @@ void MainWindow::onUpdateSegmentLength()
     uint8_t const index = triggeredAction->data().toUInt();
 
     bool ok;
-    QString const label(tr("Укажите длину сегмента #%1")
+    QString const label(tr("Укажите длину сегмента #%1 (%2-%3)")
         .arg(index + 1)
+        .arg(RobotData::minSegmentLength)
+        .arg(RobotData::maxSegmentLength)
     );
 
     double const len = QInputDialog::getDouble(
@@ -396,7 +397,7 @@ void MainWindow::onLoadedSrcCode()
         (*it)->setEnabled(false);
 
     robotViewWidget = new RobotViewWidget(679, RobotData::workspaceSize / 2.0, this);
-    robotViewWidget->move(ui->projectionWidgetLabel->x(), 71); // на ноутбуке: 71 вместо 61
+    robotViewWidget->move(ui->projectionWidgetLabel->x(), 71);
     robotViewWidget->show();
 
     parserThrd = new QThread(this);
@@ -420,15 +421,14 @@ void MainWindow::onLoadedSrcCode()
     rd.reset();
 
     connect(ui->robotDataListWidget, &QListWidget::itemClicked, this, &MainWindow::onRobotDataItemClicked);
-    for (uint8_t i = 0; i <= RobotData::segmentAmount; i++)
+    for (decltype(RobotData::segmentAmount) i = 0; i <= RobotData::segmentAmount; i++)
     {
         QListWidgetItem* item = new QListWidgetItem(ui->robotDataListWidget);
-        item->setText(tr("Шарнир #%1\n[%2 %3 %4]\n%5")
+        item->setText(tr("Шарнир #%1\n[%2 %3 %4]")
                           .arg(i + 1)
                           .arg(rd.getX(i))
                           .arg(rd.getY(i))
-                          .arg(rd.getZ(i))
-                          .arg(RobotViewWidget::getColor(i).name().toUpper()));
+                          .arg(rd.getZ(i)));
         item->setData(Qt::UserRole, i);
     }
 
